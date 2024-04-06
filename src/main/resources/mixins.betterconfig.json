@@ -1,0 +1,23 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "mixinextras": {
+    "minVersion": "0.5.3"
+  },
+  "package": "meldexun.betterconfig.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "mixins.betterconfig.refmap.json",
+  "mixins": [
+    "button/ForwardAllMouseEventsMixin",
+    "button/GuiListExtendedMixin",
+    "button/IGuiListEntryMixin",
+    "hover/HoverCheckerMixin",
+    "offset/ConfigButtonYOffsetMixin",
+    "offset/GuiSlotMixin",
+    "ConfigManagerMixin",
+    "DefaultGuiFactoryMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

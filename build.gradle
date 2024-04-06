@@ -1,0 +1,79 @@
+plugins {
+    id 'eclipse'
+    id 'net.minecraftforge.gradle' version "${forge_gradle_version}"
+    id 'org.spongepowered.mixin' version "${mixin_gradle_version}"
+    id 'com.gradleup.shadow' version "${shadow_version}"
+}
+
+version = mod_stage != "" ? "${mc_version}-${mod_version}-${mod_stage}" : "${mc_version}-${mod_version}"
+group = "meldexun.${mod_id}"
+archivesBaseName = "${mod_name}"
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(8)
+
+minecraft {
+    mappings channel: "${mappings_channel}", version: "${mappings_version}"
+
+    runs {
+        client {
+            taskName "runClient ${mod_name} ${mc_version}"
+            environment 'MC_VERSION', "${mc_version}"
+            property 'fml.coreMods.load', "${mod_plugin_class}"
+        }
+
+        server {
+            taskName "runServer ${mod_name} ${mc_version}"
+            environment 'MC_VERSION', "${mc_version}"
+            property 'fml.coreMods.load', "${mod_plugin_class}"
+        }
+    }
+}
+
+dependencies {
+    minecraft "net.minecraftforge:forge:${mc_version}-${forge_version}"
+    implementation "org.spongepowered:mixin:${mixin_version}"
+    annotationProcessor "org.spongepowered:mixin:${mixin_version}:processor"
+    implementation "io.github.llamalad7:mixinextras-common:${mixin_extras_version}"
+    annotationProcessor "io.github.llamalad7:mixinextras-common:${mixin_extras_version}"
+    shadow "io.github.llamalad7:mixinextras-common:${mixin_extras_version}"
+}
+
+mixin {
+    add sourceSets.main, "mixins.${mod_id}.refmap.json"
+    config "mixins.${mod_id}.json"
+}
+
+java {
+    withSourcesJar()
+}
+
+jar {
+    archiveBaseName = mod_name
+    archiveAppendix = mc_version
+    archiveVersion = mod_version
+    archiveClassifier = mod_stage != "" ? mod_stage + '-thin' : 'thin'
+
+    manifest {
+        attributes 'FMLCorePlugin': "${mod_plugin_class}"
+        attributes 'TweakClass': 'org.spongepowered.asm.launch.MixinTweaker'
+        attributes 'TweakOrder': '0'
+        attributes 'MixinConfigs': "mixins.${mod_id}.json"
+    }
+}
+
+jar.finalizedBy('reobfJar')
+
+shadowJar {
+    archiveClassifier = ''
+
+    configurations = [project.configurations.shadow]
+    mergeServiceFiles()
+
+    relocate 'com.llamalad7.mixinextras', "meldexun.${mod_id}.mixinextras"
+}
+
+reobf {
+    shadowJar {}
+}
+
+shadowJar.finalizedBy('reobfShadowJar')

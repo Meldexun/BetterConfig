@@ -1,0 +1,9 @@
+[
+  {
+    "modid": "betterconfig",
+    "name": "BetterConfig",
+    "version": "1.0.0",
+    "mcversion": "1.12.2",
+    "authorList": ["Meldexun"]
+  }
+]
