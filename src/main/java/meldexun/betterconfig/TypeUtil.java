@@ -287,7 +287,7 @@ public class TypeUtil {
 	private static Object copyMap(Type type, Object instance) {
 		Type keyType = TypeUtil.getKeyType(type);
 		Type valueType = TypeUtil.getValueType(type);
-		Map<Object, Object> map = (Map<Object, Object>) TypeUtil.newInstance(valueType, instance);
+		Map<Object, Object> map = (Map<Object, Object>) TypeUtil.newInstance(type, instance);
 		for (Map.Entry<?, ?> e : ((Map<?, ?>) instance).entrySet()) {
 			map.put(copy(keyType, e.getKey()), copy(valueType, e.getValue()));
 		}
