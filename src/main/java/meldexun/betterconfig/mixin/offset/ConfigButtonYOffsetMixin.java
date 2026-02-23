@@ -10,10 +10,10 @@ import net.minecraftforge.fml.client.config.GuiButtonExt;
 import net.minecraftforge.fml.client.config.GuiConfigEntries;
 import net.minecraftforge.fml.client.config.GuiEditArrayEntries;
 
-@Mixin(value = { GuiConfigEntries.ListEntryBase.class, GuiEditArrayEntries.BaseEntry.class }, remap = false)
+@Mixin({ GuiConfigEntries.ListEntryBase.class, GuiEditArrayEntries.BaseEntry.class })
 public class ConfigButtonYOffsetMixin implements ListEntryBaseExt {
 
-	@Redirect(method = "drawEntry", remap = false, at = @At(value = "FIELD", target = "Lnet/minecraftforge/fml/client/config/GuiButtonExt;y:I", remap = false, opcode = Opcodes.PUTFIELD), expect = 2)
+	@Redirect(method = { "drawEntry(IIIIIIIZF)V", "func_192634_a(IIIIIIIZF)V" }, at = @At(value = "FIELD", target = "Lnet/minecraftforge/fml/client/config/GuiButtonExt;y:I", opcode = Opcodes.PUTFIELD), expect = 2)
 	public void setY(GuiButtonExt button, int y) {
 		button.y = y + buttonOffsetY();
 	}
