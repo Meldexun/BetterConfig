@@ -193,13 +193,21 @@ public class DummyConfigElement implements IConfigElement {
 	@Deprecated
 	@Override
 	public Object getMinValue() {
-		return Integer.MIN_VALUE;
+		if (this.info.hasLongRange()) return this.info.minLong();
+		if (this.info.hasDoubleRange()) return this.info.minDouble();
+		if (this.getType() == ConfigGuiType.INTEGER) return Integer.MIN_VALUE;
+		if (this.getType() == ConfigGuiType.DOUBLE) return -Double.MAX_VALUE;
+		return null;
 	}
 
 	@Deprecated
 	@Override
 	public Object getMaxValue() {
-		return Integer.MAX_VALUE;
+		if (this.info.hasLongRange()) return this.info.maxLong();
+		if (this.info.hasDoubleRange()) return this.info.maxDouble();
+		if (this.getType() == ConfigGuiType.INTEGER) return Integer.MAX_VALUE;
+		if (this.getType() == ConfigGuiType.DOUBLE) return Double.MAX_VALUE;
+		return null;
 	}
 
 	@Deprecated
