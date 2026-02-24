@@ -5,6 +5,7 @@ import java.util.Objects;
 
 import javax.annotation.Nullable;
 
+import meldexun.betterconfig.ConfigUtil;
 import meldexun.betterconfig.IGuiListEntryExtended;
 import meldexun.betterconfig.gui.entry.AbstractEntry;
 import meldexun.betterconfig.gui.entry.CategoryEntry;
@@ -127,7 +128,7 @@ public class ConfigCategoryGuiEntry extends ListEntryBase implements IGuiListEnt
 			return false;
 		}
 		boolean requiresMcRestart = this.entry.saveChanges();
-		if (this.field != null) {
+		if (this.field != null && ConfigUtil.isNonMapCategory(this.field.getGenericType())) {
 			try {
 				this.field.set(this.instance, this.entry.getValue());
 			} catch (IllegalArgumentException | IllegalAccessException e) {
