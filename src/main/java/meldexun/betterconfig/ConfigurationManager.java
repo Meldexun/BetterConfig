@@ -14,7 +14,6 @@ import com.google.common.collect.Multimap;
 import meldexun.betterconfig.api.BetterConfig;
 import meldexun.betterconfig.gui.EntryInfo;
 import net.minecraftforge.common.config.Config;
-import net.minecraftforge.common.config.Config.Type;
 import net.minecraftforge.common.config.ConfigManager;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.fml.common.FMLLog;
@@ -39,7 +38,7 @@ public class ConfigurationManager {
 
 			f = ConfigManager.class.getDeclaredField("asm_data");
 			f.setAccessible(true);
-			asm_data = (Map<String, Multimap<Type, ASMData>>) f.get(null);
+			asm_data = (Map<String, Multimap<Config.Type, ASMData>>) f.get(null);
 
 			f = ConfigManager.class.getDeclaredField("MOD_CONFIG_CLASSES");
 			f.setAccessible(true);
