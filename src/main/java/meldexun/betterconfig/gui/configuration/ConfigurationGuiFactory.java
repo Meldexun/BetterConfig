@@ -1,6 +1,5 @@
 package meldexun.betterconfig.gui.configuration;
 
-import meldexun.betterconfig.mixin.configuration.ConfigCategoryAccessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraftforge.common.config.ConfigCategory;
@@ -12,6 +11,7 @@ import net.minecraftforge.fml.client.config.IConfigElement;
 import net.minecraftforge.fml.common.Loader;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -27,19 +27,35 @@ public class ConfigurationGuiFactory implements IModGuiFactory {
         return new ConfigurationGui(parent, currentModId, registeredConfigurations.get(currentModId));
     }
 
+    private static Field configCategory$children = null;
+
     public static class ConfigurationGui extends GuiConfig {
         public ConfigurationGui(GuiScreen parentScreen, String modid, Map<String, Configuration> cfg) {
             super(parentScreen, getConfigElements(cfg), modid, false, false, Loader.instance().getIndexedModList().get(modid).getName());
         }
 
         private static List<IConfigElement> getConfigElements(Map<String, Configuration> map) {
+            if(configCategory$children == null) {
+                try {
+                    configCategory$children = ConfigCategory.class.getDeclaredField("children");
+                    configCategory$children.setAccessible(true);
+                } catch (NoSuchFieldException | SecurityException e){
+                    System.err.println("Failed to access field ConfigCategory.children");
+                    return new ArrayList<>();
+                }
+            }
+
             if(map.size() > 1) {
                 List<IConfigElement> elements = new ArrayList<>();
                 for (Map.Entry<String, Configuration> entry : map.entrySet()) {
                     Configuration cfg = entry.getValue();
                     ConfigCategory cat = new ConfigCategory(entry.getKey()); //the configuration gets its own category, as there are multiple for this modid
-                    ((ConfigCategoryAccessor)cat).getChildrenList().addAll(cfg.getCategoryNames().stream().map(cfg::getCategory).collect(Collectors.toList()));
-                    elements.add(new ConfigElement(cat));
+                    try {
+                        ((ArrayList<ConfigCategory>) configCategory$children.get(cat)).addAll(cfg.getCategoryNames().stream().map(cfg::getCategory).collect(Collectors.toList()));
+                        elements.add(new ConfigElement(cat));
+                    } catch (IllegalAccessException | ClassCastException e) {
+                        System.err.println("Failed to access field ConfigCategory.children");
+                    }
                 }
                 return elements;
             } else {

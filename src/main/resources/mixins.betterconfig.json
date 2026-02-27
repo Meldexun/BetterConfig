@@ -16,7 +16,6 @@
     "offset/GuiSlotMixin",
     "ConfigManagerMixin",
     "DefaultGuiFactoryMixin"
-    "configuration.ConfigCategoryAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
