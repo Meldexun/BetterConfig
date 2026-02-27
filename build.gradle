@@ -7,7 +7,7 @@ plugins {
 }
 
 version = mod_stage != "" ? "${mc_version}-${mod_version}-${mod_stage}" : "${mc_version}-${mod_version}"
-group = "meldexun.${mod_id}"
+group = mod_group
 archivesBaseName = "${mod_name}"
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(8)
@@ -73,7 +73,7 @@ shadowJar {
     configurations = [project.configurations.shadow]
     mergeServiceFiles()
 
-    relocate 'com.llamalad7.mixinextras', "meldexun.${mod_id}.mixinextras"
+    relocate 'com.llamalad7.mixinextras', "${mod_group}.mixinextras"
 }
 
 reobf {
