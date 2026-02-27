@@ -7,12 +7,17 @@ import org.spongepowered.asm.mixin.MixinEnvironment;
 
 import com.llamalad7.mixinextras.MixinExtrasBootstrap;
 
+import net.minecraft.launchwrapper.Launch;
 import net.minecraftforge.fml.relauncher.CoreModManager;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
 
 @IFMLLoadingPlugin.MCVersion("1.12.2")
 @IFMLLoadingPlugin.TransformerExclusions("meldexun.betterconfig.asm")
 public class BetterConfigPlugin implements IFMLLoadingPlugin {
+
+	public BetterConfigPlugin() {
+		Launch.classLoader.registerTransformer(BetterConfigClassTransformer.class.getName());
+	}
 
 	@Override
 	public String[] getASMTransformerClass() {
