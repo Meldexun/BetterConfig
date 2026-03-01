@@ -8,6 +8,7 @@
   "compatibilityLevel": "JAVA_8",
   "refmap": "mixins.betterconfig.refmap.json",
   "mixins": [
+    "FMLModContainerMixin"
   ],
   "client": [
     "button.ForwardAllMouseEventsMixin",
