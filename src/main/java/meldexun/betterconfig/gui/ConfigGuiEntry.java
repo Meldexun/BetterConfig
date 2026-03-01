@@ -1,6 +1,6 @@
 package meldexun.betterconfig.gui;
 
-public interface ListEntryBaseExt {
+public interface ConfigGuiEntry {
 
 	int buttonOffsetY();
 

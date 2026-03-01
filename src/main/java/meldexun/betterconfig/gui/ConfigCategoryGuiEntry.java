@@ -13,7 +13,7 @@ import net.minecraftforge.fml.client.config.GuiConfigEntries.ListEntryBase;
 import net.minecraftforge.fml.client.config.HoverChecker;
 import net.minecraftforge.fml.client.config.IConfigElement;
 
-public class ConfigCategoryGuiEntry extends ListEntryBase implements IGuiListEntryExt, ListEntryBaseExt {
+public class ConfigCategoryGuiEntry extends ListEntryBase implements IGuiListEntryExt, ConfigGuiEntry {
 
 	@Nullable
 	protected final Object instance;
