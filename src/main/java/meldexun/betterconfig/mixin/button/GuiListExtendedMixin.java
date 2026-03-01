@@ -4,7 +4,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-import meldexun.betterconfig.IGuiListEntryExtended;
+import meldexun.betterconfig.gui.IGuiListEntryExtended;
 import net.minecraft.client.gui.GuiListExtended;
 import net.minecraft.client.gui.GuiListExtended.IGuiListEntry;
 

@@ -3,7 +3,6 @@ package meldexun.betterconfig.gui;
 import java.lang.reflect.Type;
 import java.util.Optional;
 
-import meldexun.betterconfig.IGuiListEntryExtended;
 import meldexun.betterconfig.TypeUtil;
 import meldexun.betterconfig.gui.entry.AbstractEntry;
 import meldexun.betterconfig.gui.entry.StringEntry;

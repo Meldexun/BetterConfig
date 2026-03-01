@@ -1,4 +1,4 @@
-package meldexun.betterconfig;
+package meldexun.betterconfig.gui;
 
 public interface IGuiListEntryExtended {
 

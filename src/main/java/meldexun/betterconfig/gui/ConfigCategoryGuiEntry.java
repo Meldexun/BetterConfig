@@ -6,7 +6,6 @@ import java.util.Objects;
 import javax.annotation.Nullable;
 
 import meldexun.betterconfig.ConfigUtil;
-import meldexun.betterconfig.IGuiListEntryExtended;
 import meldexun.betterconfig.gui.entry.AbstractEntry;
 import meldexun.betterconfig.gui.entry.CategoryEntry;
 import net.minecraft.client.gui.GuiScreen;

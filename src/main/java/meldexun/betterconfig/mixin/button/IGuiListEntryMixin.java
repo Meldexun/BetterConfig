@@ -3,7 +3,7 @@ package meldexun.betterconfig.mixin.button;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
-import meldexun.betterconfig.IGuiListEntryExtended;
+import meldexun.betterconfig.gui.IGuiListEntryExtended;
 import net.minecraft.client.gui.GuiListExtended.IGuiListEntry;
 
 @Mixin(IGuiListEntry.class)
