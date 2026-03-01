@@ -9,7 +9,7 @@ import meldexun.betterconfig.gui.entry.StringEntry;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraftforge.fml.client.config.GuiEditArrayEntries.BaseEntry;
 
-public class ConfigListGuiEntry extends BaseEntry implements IGuiListEntryExtended, ListEntryBaseExt {
+public class ConfigListGuiEntry extends BaseEntry implements IGuiListEntryExt, ListEntryBaseExt {
 
 	protected final AbstractEntry entry;
 
