@@ -8,12 +8,12 @@
   "compatibilityLevel": "JAVA_8",
   "refmap": "mixins.betterconfig.refmap.json",
   "mixins": [
-    "button/ForwardAllMouseEventsMixin",
-    "button/GuiListExtendedMixin",
-    "button/IGuiListEntryMixin",
-    "hover/HoverCheckerMixin",
-    "offset/ConfigButtonYOffsetMixin",
-    "offset/GuiSlotMixin",
+    "button.ForwardAllMouseEventsMixin",
+    "button.GuiListExtendedMixin",
+    "button.IGuiListEntryMixin",
+    "hover.HoverCheckerMixin",
+    "offset.ConfigButtonYOffsetMixin",
+    "offset.GuiSlotMixin",
     "DefaultGuiFactoryMixin"
   ],
   "injectors": {
