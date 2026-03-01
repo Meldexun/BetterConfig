@@ -11,12 +11,12 @@ import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraftforge.fml.client.config.GuiConfig;
 import net.minecraftforge.fml.client.config.GuiEditArray;
 
-@Mixin(value = { GuiConfig.class, GuiEditArray.class }, remap = false)
+@Mixin(value = { GuiConfig.class, GuiEditArray.class })
 public class ForwardAllMouseEventsMixin {
 
-	@Definition(id = "mouseEvent", remap = false, type = int.class, local = @Local(index = 3, ordinal = 2, type = int.class, name = "mouseEvent"))
+	@Definition(id = "mouseEvent", type = int.class, local = @Local(index = 3, ordinal = 2, type = int.class, name = "mouseEvent"))
 	@Expression("mouseEvent != 0")
-	@ModifyExpressionValue(method = "mouseClicked", remap = false, at = @At("MIXINEXTRAS:EXPRESSION"))
+	@ModifyExpressionValue(method = "mouseClicked", at = @At("MIXINEXTRAS:EXPRESSION"))
 	private boolean mouseClicked(boolean mouseEventNotZero) {
 		return false;
 	}
