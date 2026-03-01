@@ -1,6 +1,5 @@
 package meldexun.betterconfig;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Type;
@@ -35,15 +34,14 @@ class ConfigList extends ConfigElement {
 	}
 
 	@Override
-	void write(BufferedWriter writer, int indent) throws IOException {
-		writer.write('<');
-		writer.newLine();
+	void write(ConfigWriter writer) throws IOException {
+		writer.writeLine('<');
+		writer.incrementIndentation();
 		for (ConfigElement child : this.list) {
-			ConfigurationLoader.indent(writer, indent + 1);
-			child.write(writer, indent + 1);
+			child.write(writer);
 			writer.newLine();
 		}
-		ConfigurationLoader.indent(writer, indent);
+		writer.decrementIndentation();
 		writer.write('>');
 	}
 

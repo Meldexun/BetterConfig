@@ -1,6 +1,5 @@
 package meldexun.betterconfig;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.Objects;
@@ -36,7 +35,7 @@ abstract class ConfigElement {
 
 	abstract void read(ConfigReader reader) throws IOException;
 
-	abstract void write(BufferedWriter writer, int indent) throws IOException;
+	abstract void write(ConfigWriter writer) throws IOException;
 
 	abstract void saveToConfig(Type type, @Nullable Object instance);
 

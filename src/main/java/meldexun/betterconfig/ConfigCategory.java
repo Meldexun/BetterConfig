@@ -1,6 +1,5 @@
 package meldexun.betterconfig;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
@@ -144,41 +143,39 @@ class ConfigCategory extends ConfigElement {
 	}
 
 	@Override
-	void write(BufferedWriter writer, int indent) throws IOException {
-		writer.write('{');
-		writer.newLine();
+	void write(ConfigWriter writer) throws IOException {
+		writer.writeLine('{');
+		writer.incrementIndentation();
 		for (Map.Entry<String, ConfigElement> entry : this.elementsSorted()) {
-			ConfigurationLoader.indent(writer, indent + 1);
-			writeEntry(writer, indent + 1, entry.getKey(), entry.getValue());
+			writeEntry(writer, entry.getKey(), entry.getValue());
 			writer.newLine();
 		}
 		for (Map.Entry<String, ConfigCategory> entry : this.subcategoriesSorted()) {
-			ConfigurationLoader.indent(writer, indent + 1);
-			writeEntry(writer, indent + 1, entry.getKey(), entry.getValue());
+			writeEntry(writer, entry.getKey(), entry.getValue());
 			writer.newLine();
 		}
-		ConfigurationLoader.indent(writer, indent);
+		writer.decrementIndentation();
 		writer.write('}');
 	}
 
-	static void writeEntry(BufferedWriter writer, int indent, String name, ConfigElement element) throws IOException {
+	static void writeEntry(ConfigWriter writer, String name, ConfigElement element) throws IOException {
 		if (element instanceof ConfigValue) {
 			writer.write(serializeType((ConfigValue) element));
 			writer.write(':');
-			writeName(writer, indent, name);
+			writeName(writer, name);
 			writer.write('=');
 		} else if (element instanceof ConfigList) {
 			writer.write(serializeType((ConfigList) element));
 			writer.write(':');
-			writeName(writer, indent, name);
+			writeName(writer, name);
 			writer.write(' ');
 		} else if (element instanceof ConfigCategory) {
-			writeName(writer, indent, name);
+			writeName(writer, name);
 			writer.write(' ');
 		} else {
 			throw new IllegalArgumentException();
 		}
-		element.write(writer, indent);
+		element.write(writer);
 	}
 
 	static String serializeType(ConfigValue value) {
@@ -216,7 +213,7 @@ class ConfigCategory extends ConfigElement {
 		return 'C';
 	}
 
-	static void writeName(BufferedWriter writer, int indent, String name) throws IOException {
+	static void writeName(ConfigWriter writer, String name) throws IOException {
 		if (NO_QUOTING_NEEDED.matcher(name).matches()) {
 			writer.write(name);
 		} else {

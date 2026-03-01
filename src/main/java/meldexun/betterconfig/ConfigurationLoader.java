@@ -1,6 +1,5 @@
 package meldexun.betterconfig;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -32,17 +31,11 @@ public class ConfigurationLoader {
 	}
 
 	public static void save(ConfigCategory cfg, File file) throws IOException {
-		try (BufferedWriter writer = Files.newBufferedWriter(file.toPath())) {
+		try (ConfigWriter writer = new ConfigWriter(Files.newBufferedWriter(file.toPath()))) {
 			for (Map.Entry<String, ConfigCategory> entry : cfg.subcategoriesSorted()) {
-				ConfigCategory.writeEntry(writer, 0, entry.getKey(), entry.getValue());
+				ConfigCategory.writeEntry(writer, entry.getKey(), entry.getValue());
 				writer.newLine();
 			}
-		}
-	}
-
-	static void indent(BufferedWriter writer, int indent) throws IOException {
-		for (int i = 0; i < indent; i++) {
-			writer.write("    ");
 		}
 	}
 

@@ -1,6 +1,5 @@
 package meldexun.betterconfig;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.Objects;
@@ -29,7 +28,7 @@ class ConfigValue extends ConfigElement {
 	}
 
 	@Override
-	void write(BufferedWriter writer, int indent) throws IOException {
+	void write(ConfigWriter writer) throws IOException {
 		writer.write(this.value);
 	}
 
