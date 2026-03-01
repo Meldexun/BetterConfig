@@ -20,5 +20,9 @@
   ],
   "injectors": {
     "defaultRequire": 1
-  }
+  },
+  "client": [
+    "configuration.GuiConfigMixin",
+    "configuration.GuiModListMixin"
+  ]
 }
