@@ -36,9 +36,9 @@ public class BetterConfigPlugin implements IFMLLoadingPlugin {
 
 	@Override
 	public void injectData(Map<String, Object> data) {
+		MixinBootstrap.init();
+		MixinExtrasBootstrap.init();
 		if (Boolean.FALSE.equals(data.get("runtimeDeobfuscationEnabled"))) {
-			MixinBootstrap.init();
-			MixinExtrasBootstrap.init();
 			MixinEnvironment.getDefaultEnvironment().setObfuscationContext("searge");
 			CoreModManager.getIgnoredMods().add("mixin-0.8.7.jar");
 			CoreModManager.getIgnoredMods().add("asm-util-6.2.jar");
