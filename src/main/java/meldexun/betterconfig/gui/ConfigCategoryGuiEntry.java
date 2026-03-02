@@ -33,7 +33,7 @@ public class ConfigCategoryGuiEntry extends ListEntryBase implements IGuiListEnt
 		} catch (IllegalArgumentException | IllegalAccessException e) {
 			throw new UnsupportedOperationException(e);
 		}
-		this.entry = AbstractEntry.create((T) this.owningScreen, this.info.guiName(), this.info, this.field.getGenericType(), this.info.defaultValue(), this.beforeValue);
+		this.entry = AbstractEntry.create((T) this.owningScreen, this.info::guiName, this.info, this.field.getGenericType(), this.info.defaultValue(), this.beforeValue);
 		if (this.entry instanceof CategoryEntry) {
 			this.drawLabel = false;
 			((CategoryEntry) this.entry).getButton().displayString = this.getName();
@@ -49,11 +49,9 @@ public class ConfigCategoryGuiEntry extends ListEntryBase implements IGuiListEnt
 		this.info = EntryInfo.create(type);
 		this.beforeValue = null;
 		this.entry = new CategoryEntry((T) this.owningScreen, this.info::guiName, this.info, type, null);
-		if (this.entry instanceof CategoryEntry) {
-			this.drawLabel = false;
-			((CategoryEntry) this.entry).getButton().displayString = this.getName();
-			this.tooltipHoverChecker = new HoverChecker(((CategoryEntry) this.entry).getButton(), 800);
-		}
+		this.drawLabel = false;
+		((CategoryEntry) this.entry).getButton().displayString = this.getName();
+		this.tooltipHoverChecker = new HoverChecker(((CategoryEntry) this.entry).getButton(), 800);
 	}
 
 	@Override

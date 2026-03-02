@@ -26,8 +26,8 @@ public abstract class AbstractEntry {
 		this.beforeValue = beforeValue;
 	}
 
-	public static <T extends GuiScreen & ConfigGui> AbstractEntry create(T owningScreen, String childScreenTitle, EntryInfo info, Type type, Object defaultValue, Object beforeValue) {
-		return create(owningScreen, () -> childScreenTitle, info, type, defaultValue, Optional.of(beforeValue));
+	public static <T extends GuiScreen & ConfigGui> AbstractEntry create(T owningScreen, Supplier<String> childScreenTitle, EntryInfo info, Type type, Object defaultValue, Object beforeValue) {
+		return create(owningScreen, childScreenTitle, info, type, defaultValue, Optional.of(beforeValue));
 	}
 
 	public static <T extends GuiScreen & ConfigGui> AbstractEntry create(T owningScreen, Supplier<String> childScreenTitle, EntryInfo info, Type type, Object defaultValue, Optional<Object> beforeValue) {
