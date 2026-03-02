@@ -130,7 +130,7 @@ public class ConfigCategoryGuiEntry extends ListEntryBase implements IGuiListEnt
 			return false;
 		}
 		boolean requiresMcRestart = this.entry.saveChanges();
-		if (this.field != null && ConfigUtil.isNonMapCategory(this.field.getGenericType())) {
+		if (this.field != null && !ConfigUtil.isNonMapCategory(this.field.getGenericType())) {
 			try {
 				this.field.set(this.instance, this.entry.getValue());
 			} catch (IllegalArgumentException | IllegalAccessException e) {

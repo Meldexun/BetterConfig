@@ -311,7 +311,10 @@ class ConfigCategory extends ConfigElement {
 				ConfigElement element = (ConfigUtil.isCategory(field.getGenericType()) ? this.subcategories : this.elements).get(name);
 				if (element != null && element.isConfigTypeEqual(field.getGenericType())) {
 					try {
-						field.set(instance, element.loadFromConfig(field.getGenericType(), field.get(instance)));
+						Object value = element.loadFromConfig(field.getGenericType(), field.get(instance));
+						if (!ConfigUtil.isNonMapCategory(field.getGenericType())) {
+							field.set(instance, value);
+						}
 					} catch (IllegalArgumentException | IllegalAccessException e) {
 						throw new UnsupportedOperationException(e);
 					}
