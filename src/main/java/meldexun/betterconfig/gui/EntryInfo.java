@@ -1,7 +1,6 @@
 package meldexun.betterconfig.gui;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -9,8 +8,8 @@ import java.util.WeakHashMap;
 
 import javax.annotation.Nullable;
 
-import meldexun.betterconfig.ConfigUtil;
 import meldexun.betterconfig.TypeUtil;
+import meldexun.betterconfig.api.Order;
 import meldexun.betterconfig.api.RangeLong;
 import meldexun.betterconfig.api.Unmodifiable;
 import net.minecraft.client.resources.I18n;
@@ -56,6 +55,8 @@ public interface EntryInfo {
 
 	boolean requiresWorldRestart();
 
+	int order();
+
 	static class Builder {
 
 		private final String name;
@@ -72,6 +73,7 @@ public interface EntryInfo {
 		private Object defaultValue;
 		private boolean requiresMcRestart;
 		private boolean requiresWorldRestart;
+		private int order;
 
 		public Builder(String name) {
 			this.name = Objects.requireNonNull(name);
@@ -117,6 +119,10 @@ public interface EntryInfo {
 			this.requiresWorldRestart = requiresWorldRestart;
 		}
 
+		public void setOrder(int order) {
+			this.order = order;
+		}
+
 		public EntryInfo build() {
 			String name = this.name;
 			String langKey = this.langKey;
@@ -132,6 +138,7 @@ public interface EntryInfo {
 			Object defaultValue = this.defaultValue;
 			boolean requiresMcRestart = this.requiresMcRestart;
 			boolean requiresWorldRestart = this.requiresWorldRestart;
+			int order = this.order;
 			return new EntryInfo() {
 				@Override
 				public String name() {
@@ -217,25 +224,17 @@ public interface EntryInfo {
 				public boolean requiresWorldRestart() {
 					return requiresWorldRestart;
 				}
+
+				@Override
+				public int order() {
+					return order;
+				}
 			};
 		}
 
 	}
 
 	static final Map<Object, Map<Field, EntryInfo>> CACHE = new WeakHashMap<>();
-
-	static void load(Type type, @Nullable Object instance) {
-		for (Field field : ConfigUtil.getConfigFields(type, instance == null)) {
-			fromField(instance, field);
-			if (ConfigUtil.isCategory(field.getGenericType()) && !TypeUtil.isMap(field.getGenericType())) {
-				try {
-					load(field.getGenericType(), field.get(instance));
-				} catch (IllegalArgumentException | IllegalAccessException e) {
-					throw new UnsupportedOperationException(e);
-				}
-			}
-		}
-	}
 
 	static EntryInfo fromField(@Nullable Object instance, Field field) {
 		return CACHE.computeIfAbsent(instance, k -> new HashMap<>()).computeIfAbsent(field, k -> {
@@ -263,6 +262,9 @@ public interface EntryInfo {
 			}
 			builder.setRequiresMcRestart(field.isAnnotationPresent(Config.RequiresMcRestart.class));
 			builder.setRequiresWorldRestart(field.isAnnotationPresent(Config.RequiresWorldRestart.class));
+			if (field.isAnnotationPresent(Order.class)) {
+				builder.setOrder(field.getAnnotation(Order.class).value());
+			}
 			return builder.build();
 		});
 	}

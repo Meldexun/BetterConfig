@@ -86,7 +86,7 @@ public class ConfigurationManager {
 
 					ConfigCategory categoryElement = !category.isEmpty() ? getOrCreateCategory(cfg, category) : cfg.root;
 					if (LOADED_CATEGORIES.put(file, category)) {
-						EntryInfo.load(cls, null);
+						categoryElement.loadInfo(cls, EntryInfo.create(cls), null);
 						categoryElement.loadFromConfig(cls, null);
 					}
 

@@ -6,11 +6,14 @@ import java.util.Objects;
 
 import javax.annotation.Nullable;
 
+import meldexun.betterconfig.gui.EntryInfo;
+
 abstract class ConfigElement {
 
 	final Config config;
 	final DefaultSupplier<Type> type;
-	int order;
+	@Nullable
+	EntryInfo info;
 
 	ConfigElement(Config config, DefaultSupplier<Type> type) {
 		this.config = config;
@@ -39,16 +42,23 @@ abstract class ConfigElement {
 
 	abstract void write(ConfigWriter writer) throws IOException;
 
+	void loadInfo(Type type, EntryInfo info, @Nullable Object instance) {
+		Objects.requireNonNull(type);
+		Objects.requireNonNull(info);
+		if (!this.isConfigTypeEqual(type)) {
+			throw new IllegalArgumentException();
+		}
+		this.type.set(type);
+		this.info = info;
+	}
+
 	abstract void saveToConfig(Type type, @Nullable Object instance);
 
 	abstract Object loadFromConfig(Type type, @Nullable Object instance);
 
-	void order(int order) {
-		this.order = order;
-	}
-
-	int order() {
-		return this.order;
+	@Nullable
+	EntryInfo info() {
+		return info;
 	}
 
 }

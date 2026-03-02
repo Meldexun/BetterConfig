@@ -17,7 +17,7 @@ import javax.annotation.Nullable;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.reflect.TypeUtils;
 
-import meldexun.betterconfig.api.Order;
+import meldexun.betterconfig.gui.EntryInfo;
 
 class ConfigCategory extends ConfigElement {
 
@@ -30,7 +30,7 @@ class ConfigCategory extends ConfigElement {
 	static final Pattern CATEGORY = Pattern.compile(String.format("%s\\s*(?=\\{)", NAME));
 	static final Pattern LIST = Pattern.compile(String.format("%s:%s\\s*(?=<)", LIST_TYPE, NAME));
 	static final Pattern VALUE = Pattern.compile(String.format("%s:%s=", VALUE_TYPE, NAME));
-	static final Comparator<Map.Entry<String, ? extends ConfigElement>> CATEGORY_ORDER = Comparator.comparing(Map.Entry::getValue, Comparator.comparingInt(ConfigElement::order));
+	static final Comparator<Map.Entry<String, ? extends ConfigElement>> CATEGORY_ORDER = Comparator.comparingInt(e -> e.getValue().info() != null ? e.getValue().info().order() : 0);
 	static final Comparator<Map.Entry<String, ? extends ConfigElement>> ELEMENT_ORDER = CATEGORY_ORDER.thenComparing(Map.Entry::getKey);
 	final Map<String, ConfigCategory> subcategories = new LinkedHashMap<>();
 	final Map<String, ConfigElement> elements = new LinkedHashMap<>();
@@ -223,6 +223,28 @@ class ConfigCategory extends ConfigElement {
 	}
 
 	@Override
+	void loadInfo(Type type, EntryInfo info, Object instance) {
+		super.loadInfo(type, info, instance);
+
+		if (!TypeUtil.isMap(type)) {
+			for (Field field : ConfigUtil.getConfigFields(type, instance == null)) {
+				String name = field.isAnnotationPresent(net.minecraftforge.common.config.Config.Name.class) ? field.getAnnotation(net.minecraftforge.common.config.Config.Name.class).value() : field.getName();
+				ConfigElement element;
+				if (ConfigUtil.isCategory(field.getGenericType())) {
+					element = this.subcategories.computeIfAbsent(name, k -> new ConfigCategory(this.config, DefaultSupplier.of(field.getGenericType())));
+				} else {
+					element = this.elements.compute(name, (k, v) -> v != null && v.isConfigTypeEqual(field.getGenericType()) ? v : ConfigElement.create(this.config, field.getGenericType()));
+				}
+				try {
+					element.loadInfo(field.getGenericType(), EntryInfo.fromField(instance, field), field.get(instance));
+				} catch (IllegalArgumentException | IllegalAccessException e) {
+					throw new UnsupportedOperationException(e);
+				}
+			}
+		}
+	}
+
+	@Override
 	void saveToConfig(Type type, @Nullable Object instance) {
 		Objects.requireNonNull(type);
 		if (!ConfigUtil.isCategory(type)) {
@@ -266,9 +288,6 @@ class ConfigCategory extends ConfigElement {
 					element.saveToConfig(field.getGenericType(), field.get(instance));
 				} catch (IllegalArgumentException | IllegalAccessException e) {
 					throw new UnsupportedOperationException(e);
-				}
-				if (field.isAnnotationPresent(Order.class)) {
-					element.order(field.getAnnotation(Order.class).value());
 				}
 			}
 		}
