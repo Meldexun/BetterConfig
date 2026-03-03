@@ -229,6 +229,9 @@ class ConfigCategory extends ConfigElement {
 		if (!TypeUtil.isMap(type)) {
 			for (Field field : ConfigUtil.getConfigFields(type, instance == null)) {
 				String name = field.isAnnotationPresent(net.minecraftforge.common.config.Config.Name.class) ? field.getAnnotation(net.minecraftforge.common.config.Config.Name.class).value() : field.getName();
+				if (this.config.settings.lowerCaseCategories()) {
+					name = name.toLowerCase();
+				}
 				ConfigElement element;
 				if (ConfigUtil.isCategory(field.getGenericType())) {
 					element = this.subcategories.computeIfAbsent(name, k -> new ConfigCategory(this.config, DefaultSupplier.of(field.getGenericType())));
@@ -278,6 +281,9 @@ class ConfigCategory extends ConfigElement {
 		} else {
 			for (Field field : ConfigUtil.getConfigFields(type, instance == null)) {
 				String name = field.isAnnotationPresent(net.minecraftforge.common.config.Config.Name.class) ? field.getAnnotation(net.minecraftforge.common.config.Config.Name.class).value() : field.getName();
+				if (this.config.settings.lowerCaseCategories()) {
+					name = name.toLowerCase();
+				}
 				ConfigElement element;
 				if (ConfigUtil.isCategory(field.getGenericType())) {
 					element = this.subcategories.computeIfAbsent(name, k -> new ConfigCategory(this.config, DefaultSupplier.of(field.getGenericType())));
@@ -326,6 +332,9 @@ class ConfigCategory extends ConfigElement {
 		} else {
 			for (Field field : ConfigUtil.getConfigFields(type, instance == null)) {
 				String name = field.isAnnotationPresent(net.minecraftforge.common.config.Config.Name.class) ? field.getAnnotation(net.minecraftforge.common.config.Config.Name.class).value() : field.getName();
+				if (this.config.settings.lowerCaseCategories()) {
+					name = name.toLowerCase();
+				}
 				ConfigElement element = (ConfigUtil.isCategory(field.getGenericType()) ? this.subcategories : this.elements).get(name);
 				if (element != null && element.isConfigTypeEqual(field.getGenericType())) {
 					try {
