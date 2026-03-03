@@ -294,6 +294,11 @@ class ConfigCategory extends ConfigElement {
 					throw new UnsupportedOperationException(e);
 				}
 			}
+
+			if (this.config.settings.removeDeprecatedEntries()) {
+				this.subcategories.values().removeIf(e -> e.info() == null);
+				this.elements.values().removeIf(e -> e.info() == null);
+			}
 		}
 	}
 

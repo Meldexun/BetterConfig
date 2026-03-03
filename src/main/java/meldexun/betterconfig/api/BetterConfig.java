@@ -17,4 +17,6 @@ public @interface BetterConfig {
 
 	boolean addDefaultsToComments() default true;
 
+	boolean removeDeprecatedEntries() default false;
+
 }
