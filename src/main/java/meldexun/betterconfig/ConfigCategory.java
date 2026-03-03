@@ -204,6 +204,8 @@ class ConfigCategory extends ConfigElement {
 					writer.newLine();
 				}
 			}
+		} else {
+			writer.writeCommentLine("~DEPRECATED~");
 		}
 
 		if (element instanceof ConfigValue) {
