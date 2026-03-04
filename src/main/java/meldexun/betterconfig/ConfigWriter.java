@@ -2,6 +2,7 @@ package meldexun.betterconfig;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.util.Iterator;
 
 public class ConfigWriter implements AutoCloseable {
 
@@ -11,6 +12,21 @@ public class ConfigWriter implements AutoCloseable {
 
 	public ConfigWriter(BufferedWriter writer) {
 		this.writer = writer;
+	}
+
+	public <T> ConfigWriter write(Iterable<T> iterable, ThrowingBiConsumer<ConfigWriter, T, IOException> elementWriter) throws IOException {
+		return this.write(iterable, elementWriter, ConfigWriter::newLine);
+	}
+
+	public <T> ConfigWriter write(Iterable<T> iterable, ThrowingBiConsumer<ConfigWriter, T, IOException> elementWriter, ThrowingConsumer<ConfigWriter, IOException> separatorWriter) throws IOException {
+		Iterator<T> iterator = iterable.iterator();
+		while (iterator.hasNext()) {
+			elementWriter.accept(this, iterator.next());
+			if (iterator.hasNext()) {
+				separatorWriter.accept(this);
+			}
+		}
+		return this;
 	}
 
 	public ConfigWriter writeLine(char c) throws IOException {

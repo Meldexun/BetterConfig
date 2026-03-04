@@ -3,10 +3,11 @@ package meldexun.betterconfig;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Matcher;
@@ -46,22 +47,20 @@ class ConfigCategory extends ConfigElement {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	Map.Entry<String, ConfigCategory>[] subcategoriesSorted() {
-		Map.Entry<String, ConfigCategory>[] array = this.subcategories.entrySet().toArray(new Map.Entry[this.subcategories.size()]);
+	List<Map.Entry<String, ConfigCategory>> subcategoriesSorted() {
+		List<Map.Entry<String, ConfigCategory>> list = new ArrayList<>(this.subcategories.entrySet());
 		if (!TypeUtil.isMap(this.type.getOrDefault())) {
-			Arrays.parallelSort(array, CATEGORY_ORDER);
+			list.sort(CATEGORY_ORDER);
 		}
-		return array;
+		return list;
 	}
 
-	@SuppressWarnings("unchecked")
-	Map.Entry<String, ConfigElement>[] elementsSorted() {
-		Map.Entry<String, ConfigElement>[] array = this.elements.entrySet().toArray(new Map.Entry[this.elements.size()]);
+	List<Map.Entry<String, ConfigElement>> elementsSorted() {
+		List<Map.Entry<String, ConfigElement>> list = new ArrayList<>(this.elements.entrySet());
 		if (!TypeUtil.isMap(this.type.getOrDefault())) {
-			Arrays.parallelSort(array, ELEMENT_ORDER);
+			list.sort(ELEMENT_ORDER);
 		}
-		return array;
+		return list;
 	}
 
 	@Override
@@ -149,14 +148,14 @@ class ConfigCategory extends ConfigElement {
 	void write(ConfigWriter writer) throws IOException {
 		writer.writeLine('{');
 		writer.incrementIndentation();
-		for (Map.Entry<String, ConfigElement> entry : this.elementsSorted()) {
-			writeEntry(writer, entry.getKey(), entry.getValue());
-			writer.newLine();
-		}
-		for (Map.Entry<String, ConfigCategory> entry : this.subcategoriesSorted()) {
-			writeEntry(writer, entry.getKey(), entry.getValue());
-			writer.newLine();
-		}
+		writer.write(this.elementsSorted(), (writer1, entry) -> {
+			writeEntry(writer1, entry.getKey(), entry.getValue());
+			writer1.newLine();
+		});
+		writer.write(this.subcategoriesSorted(), (writer1, entry) -> {
+			writeEntry(writer1, entry.getKey(), entry.getValue());
+			writer1.newLine();
+		});
 		writer.decrementIndentation();
 		writer.write('}');
 	}
@@ -179,6 +178,7 @@ class ConfigCategory extends ConfigElement {
 
 					if (element.config.settings.bigCategoryComments()) {
 						writer.writeLine(CATEGORY_COMMENT_BORDER);
+						writer.newLine();
 					}
 				}
 			} else {

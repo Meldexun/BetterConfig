@@ -50,6 +50,8 @@ class Config {
 			for (Map.Entry<String, ConfigCategory> entry : this.root.subcategoriesSorted()) {
 				ConfigCategory.writeEntry(writer, entry.getKey(), entry.getValue());
 				writer.newLine();
+				writer.newLine();
+				writer.newLine();
 			}
 		}
 	}
