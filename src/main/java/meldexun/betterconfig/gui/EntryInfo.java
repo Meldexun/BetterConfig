@@ -11,6 +11,7 @@ import javax.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
 
 import meldexun.betterconfig.TypeUtil;
+import meldexun.betterconfig.api.BetterConfig;
 import meldexun.betterconfig.api.Order;
 import meldexun.betterconfig.api.RangeLong;
 import meldexun.betterconfig.api.Unmodifiable;
@@ -263,10 +264,10 @@ public interface EntryInfo {
 	}
 
 	static EntryInfo create(Class<?> type) {
-		if (!type.isAnnotationPresent(Config.class)) {
+		if (!type.isAnnotationPresent(BetterConfig.class)) {
 			throw new IllegalArgumentException();
 		}
-		Config annotation = type.getAnnotation(Config.class);
+		BetterConfig annotation = type.getAnnotation(BetterConfig.class);
 		Builder builder = new Builder(!annotation.name().isEmpty() ? annotation.name() : annotation.modid());
 		if (type.isAnnotationPresent(Config.LangKey.class)) {
 			builder.setLangKey(type.getAnnotation(Config.LangKey.class).value());

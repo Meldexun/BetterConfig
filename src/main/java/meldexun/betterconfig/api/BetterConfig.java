@@ -9,6 +9,12 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface BetterConfig {
 
+	String modid();
+
+	String name() default "";
+
+	String category() default "general";
+
 	boolean lowerCaseCategories() default true;
 
 	boolean bigCategoryComments() default true;

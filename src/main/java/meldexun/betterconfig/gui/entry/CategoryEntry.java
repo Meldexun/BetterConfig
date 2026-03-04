@@ -4,6 +4,7 @@ import java.lang.reflect.Type;
 import java.util.function.Supplier;
 
 import meldexun.betterconfig.TypeUtil;
+import meldexun.betterconfig.api.BetterConfig;
 import meldexun.betterconfig.gui.ConfigCategoryGui;
 import meldexun.betterconfig.gui.ConfigGui;
 import meldexun.betterconfig.gui.EntryInfo;
@@ -16,10 +17,14 @@ public class CategoryEntry extends ButtonEntry<GuiButtonExt> {
 	protected final Object instance;
 
 	public <T extends GuiScreen & ConfigGui> CategoryEntry(T owningScreen, Supplier<String> childScreenTitle, EntryInfo info, Type type, Object beforeValue) {
+		this(owningScreen, owningScreen.settings(), childScreenTitle, info, type, beforeValue);
+	}
+
+	public <T extends GuiScreen & ConfigGui> CategoryEntry(T owningScreen, BetterConfig settings, Supplier<String> childScreenTitle, EntryInfo info, Type type, Object beforeValue) {
 		super(info, type, TypeUtil.copy(type, beforeValue));
 		this.instance = beforeValue;
 
-		this.childScreen = new ConfigCategoryGui(owningScreen, childScreenTitle, this.type, this.instance) {
+		this.childScreen = new ConfigCategoryGui(owningScreen, settings, childScreenTitle, this.type, this.instance) {
 			@Override
 			public void onGuiClosed() {
 				super.onGuiClosed();

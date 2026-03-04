@@ -6,12 +6,14 @@ import java.util.Objects;
 
 import javax.annotation.Nullable;
 
+import meldexun.betterconfig.api.BetterConfig;
+
 class ConfigValue extends ConfigElement {
 
 	String value;
 
-	ConfigValue(Config config, DefaultSupplier<Type> type) {
-		super(config, type);
+	ConfigValue(DefaultSupplier<Type> type) {
+		super(type);
 		if (!ConfigUtil.isValue(this.type.getOrDefault())) {
 			throw new IllegalArgumentException();
 		}
@@ -28,12 +30,12 @@ class ConfigValue extends ConfigElement {
 	}
 
 	@Override
-	void write(ConfigWriter writer) throws IOException {
+	void write(ConfigWriter writer, BetterConfig settings) throws IOException {
 		writer.write(this.value);
 	}
 
 	@Override
-	void saveToConfig(Type type, @Nullable Object instance) {
+	void saveToConfig(BetterConfig settings, Type type, @Nullable Object instance) {
 		Objects.requireNonNull(type);
 		Objects.requireNonNull(instance);
 		if (!ConfigUtil.isValue(type)) {
@@ -44,7 +46,7 @@ class ConfigValue extends ConfigElement {
 	}
 
 	@Override
-	Object loadFromConfig(Type type, @Nullable Object instance) {
+	Object loadFromConfig(BetterConfig settings, Type type, @Nullable Object instance) {
 		Objects.requireNonNull(type);
 		if (!ConfigUtil.isValue(type) || this.type.existsAndNotEqual(type)) {
 			return instance;

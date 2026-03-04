@@ -19,7 +19,9 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.TypeUtils;
 
+import meldexun.betterconfig.api.BetterConfig;
 import meldexun.betterconfig.gui.EntryInfo;
+import net.minecraftforge.common.config.Config;
 
 class ConfigCategory extends ConfigElement {
 
@@ -40,8 +42,8 @@ class ConfigCategory extends ConfigElement {
 	final Map<String, ConfigCategory> subcategories = new LinkedHashMap<>();
 	final Map<String, ConfigElement> elements = new LinkedHashMap<>();
 
-	ConfigCategory(Config config, DefaultSupplier<Type> type) {
-		super(config, type);
+	ConfigCategory(DefaultSupplier<Type> type) {
+		super(type);
 		if (!ConfigUtil.isCategory(this.type.getOrDefault())) {
 			throw new IllegalArgumentException();
 		}
@@ -75,13 +77,13 @@ class ConfigCategory extends ConfigElement {
 			Matcher matcher;
 			if ((matcher = reader.readMatching(VALUE)) != null) {
 				name = ObjectUtils.defaultIfNull(matcher.group(2), matcher.group(3));
-				element = new ConfigValue(this.config, DefaultSupplier.fallback(parseValueType(matcher.group(1))));
+				element = new ConfigValue(DefaultSupplier.fallback(parseValueType(matcher.group(1))));
 			} else if ((matcher = reader.readMatching(LIST)) != null) {
 				name = ObjectUtils.defaultIfNull(matcher.group(2), matcher.group(3));
-				element = new ConfigList(this.config, DefaultSupplier.fallback(parseListType(matcher.group(1))));
+				element = new ConfigList(DefaultSupplier.fallback(parseListType(matcher.group(1))));
 			} else if ((matcher = reader.readMatching(CATEGORY)) != null) {
 				name = ObjectUtils.defaultIfNull(matcher.group(1), matcher.group(2));
-				element = new ConfigCategory(this.config, DefaultSupplier.fallback(Map.class));
+				element = new ConfigCategory(DefaultSupplier.fallback(Map.class));
 			} else {
 				throw new IllegalArgumentException(reader.peekLine());
 			}
@@ -145,28 +147,28 @@ class ConfigCategory extends ConfigElement {
 	}
 
 	@Override
-	void write(ConfigWriter writer) throws IOException {
+	void write(ConfigWriter writer, BetterConfig settings) throws IOException {
 		writer.writeLine('{');
 		writer.incrementIndentation();
 		writer.write(this.elementsSorted(), (writer1, entry) -> {
-			writeEntry(writer1, entry.getKey(), entry.getValue());
+			writeEntry(writer1, settings, entry.getKey(), entry.getValue());
 			writer1.newLine();
 		});
 		writer.write(this.subcategoriesSorted(), (writer1, entry) -> {
-			writeEntry(writer1, entry.getKey(), entry.getValue());
+			writeEntry(writer1, settings, entry.getKey(), entry.getValue());
 			writer1.newLine();
 		});
 		writer.decrementIndentation();
 		writer.write('}');
 	}
 
-	static void writeEntry(ConfigWriter writer, String name, ConfigElement element) throws IOException {
+	static void writeEntry(ConfigWriter writer, BetterConfig settings, String name, ConfigElement element) throws IOException {
 		// write comment
 		EntryInfo info = element.info();
 		if (info != null) {
 			if (element instanceof ConfigCategory) {
 				if (info.hasComment()) {
-					if (element.config.settings.bigCategoryComments()) {
+					if (settings.bigCategoryComments()) {
 						writer.writeLine(CATEGORY_COMMENT_BORDER);
 						writer.writeCommentLine(name);
 						writer.writeLine(CATEGORY_COMMENT_SEPARATOR);
@@ -176,7 +178,7 @@ class ConfigCategory extends ConfigElement {
 						writer.writeCommentLine(commentLine);
 					}
 
-					if (element.config.settings.bigCategoryComments()) {
+					if (settings.bigCategoryComments()) {
 						writer.writeLine(CATEGORY_COMMENT_BORDER);
 						writer.newLine();
 					}
@@ -188,8 +190,8 @@ class ConfigCategory extends ConfigElement {
 					}
 				}
 
-				boolean writeRange = element.config.settings.addRangesToComments() && (info.hasLongRange() || info.hasDoubleRange());
-				boolean writeDefault = element.config.settings.addDefaultsToComments() && info.hasDefaultValue();
+				boolean writeRange = settings.addRangesToComments() && (info.hasLongRange() || info.hasDoubleRange());
+				boolean writeDefault = settings.addDefaultsToComments() && info.hasDefaultValue();
 				if (writeRange || writeDefault) {
 					writer.startComment();
 					if (writeRange) {
@@ -231,7 +233,7 @@ class ConfigCategory extends ConfigElement {
 		}
 
 		// write value
-		element.write(writer);
+		element.write(writer, settings);
 	}
 
 	static String serializeType(ConfigValue value) {
@@ -280,26 +282,26 @@ class ConfigCategory extends ConfigElement {
 	}
 
 	@Override
-	void loadInfo(Type type, EntryInfo info, Object instance) {
-		super.loadInfo(type, info, instance);
+	void loadInfo(BetterConfig settings, Type type, EntryInfo info, @Nullable Object instance) {
+		super.loadInfo(settings, type, info, instance);
 
 		if (!TypeUtil.isMap(type)) {
 			for (Field field : ConfigUtil.getConfigFields(type, instance == null)) {
-				String name = this.config.name(instance, field);
+				String name = getName(settings, type, field);
 				ConfigElement element;
 				if (ConfigUtil.isCategory(field.getGenericType())) {
-					element = this.subcategories.computeIfAbsent(name, k -> new ConfigCategory(this.config, DefaultSupplier.of(field.getGenericType())));
+					element = this.subcategories.computeIfAbsent(name, k -> new ConfigCategory(DefaultSupplier.of(field.getGenericType())));
 				} else {
-					element = this.elements.compute(name, (k, v) -> v != null && v.isConfigTypeEqual(field.getGenericType()) ? v : ConfigElement.create(this.config, field.getGenericType()));
+					element = this.elements.compute(name, (k, v) -> v != null && v.isConfigTypeEqual(field.getGenericType()) ? v : ConfigElement.create(field.getGenericType()));
 				}
 				try {
-					element.loadInfo(field.getGenericType(), EntryInfo.fromField(instance, field), field.get(instance));
+					element.loadInfo(settings, field.getGenericType(), EntryInfo.fromField(instance, field), field.get(instance));
 				} catch (IllegalArgumentException | IllegalAccessException e) {
 					throw new UnsupportedOperationException(e);
 				}
 			}
 
-			if (this.config.settings.removeDeprecatedEntries()) {
+			if (settings.removeDeprecatedEntries()) {
 				this.subcategories.values().removeIf(e -> e.info() == null);
 				this.elements.values().removeIf(e -> e.info() == null);
 			}
@@ -307,7 +309,7 @@ class ConfigCategory extends ConfigElement {
 	}
 
 	@Override
-	void saveToConfig(Type type, @Nullable Object instance) {
+	void saveToConfig(BetterConfig settings, Type type, @Nullable Object instance) {
 		Objects.requireNonNull(type);
 		if (!ConfigUtil.isCategory(type)) {
 			throw new IllegalArgumentException();
@@ -329,25 +331,25 @@ class ConfigCategory extends ConfigElement {
 
 			((Map<?, ?>) instance).forEach((k, v) -> {
 				String name = keyAdapter.serialize(k);
-				ConfigElement element = ConfigElement.create(this.config, valueType);
+				ConfigElement element = ConfigElement.create(valueType);
 				if (element instanceof ConfigCategory) {
 					this.subcategories.put(name, (ConfigCategory) element);
 				} else {
 					this.elements.put(name, element);
 				}
-				element.saveToConfig(valueType, v);
+				element.saveToConfig(settings, valueType, v);
 			});
 		} else {
 			for (Field field : ConfigUtil.getConfigFields(type, instance == null)) {
-				String name = this.config.name(instance, field);
+				String name = getName(settings, type, field);
 				ConfigElement element;
 				if (ConfigUtil.isCategory(field.getGenericType())) {
-					element = this.subcategories.computeIfAbsent(name, k -> new ConfigCategory(this.config, DefaultSupplier.of(field.getGenericType())));
+					element = this.subcategories.computeIfAbsent(name, k -> new ConfigCategory(DefaultSupplier.of(field.getGenericType())));
 				} else {
-					element = this.elements.compute(name, (k, v) -> v != null && v.isConfigTypeEqual(field.getGenericType()) ? v : ConfigElement.create(this.config, field.getGenericType()));
+					element = this.elements.compute(name, (k, v) -> v != null && v.isConfigTypeEqual(field.getGenericType()) ? v : ConfigElement.create(field.getGenericType()));
 				}
 				try {
-					element.saveToConfig(field.getGenericType(), field.get(instance));
+					element.saveToConfig(settings, field.getGenericType(), field.get(instance));
 				} catch (IllegalArgumentException | IllegalAccessException e) {
 					throw new UnsupportedOperationException(e);
 				}
@@ -357,7 +359,7 @@ class ConfigCategory extends ConfigElement {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	Object loadFromConfig(Type type, @Nullable Object instance) {
+	Object loadFromConfig(BetterConfig settings, Type type, @Nullable Object instance) {
 		Objects.requireNonNull(type);
 		if (!ConfigUtil.isCategory(type) || this.type.existsAndNotEqual(type)) {
 			return instance;
@@ -374,12 +376,12 @@ class ConfigCategory extends ConfigElement {
 			Map<Object, Object> map = (Map<Object, Object>) TypeUtil.newInstance(type, instance);
 			if (ConfigUtil.isCategory(valueType)) {
 				this.subcategories.forEach((name, subcategory) -> {
-					map.put(keyAdapter.deserialize(name), subcategory.loadFromConfig(valueType, TypeUtil.newInstance(valueType)));
+					map.put(keyAdapter.deserialize(name), subcategory.loadFromConfig(settings, valueType, TypeUtil.newInstance(valueType)));
 				});
 			} else {
 				this.elements.forEach((name, element) -> {
 					if (element.isConfigTypeEqual(valueType)) {
-						map.put(keyAdapter.deserialize(name), element.loadFromConfig(valueType, TypeUtil.newInstance(valueType)));
+						map.put(keyAdapter.deserialize(name), element.loadFromConfig(settings, valueType, TypeUtil.newInstance(valueType)));
 					}
 				});
 			}
@@ -387,11 +389,11 @@ class ConfigCategory extends ConfigElement {
 			return map;
 		} else {
 			for (Field field : ConfigUtil.getConfigFields(type, instance == null)) {
-				String name = this.config.name(instance, field);
+				String name = getName(settings, type, field);
 				ConfigElement element = (ConfigUtil.isCategory(field.getGenericType()) ? this.subcategories : this.elements).get(name);
 				if (element != null && element.isConfigTypeEqual(field.getGenericType())) {
 					try {
-						Object value = element.loadFromConfig(field.getGenericType(), field.get(instance));
+						Object value = element.loadFromConfig(settings, field.getGenericType(), field.get(instance));
 						if (!ConfigUtil.isNonMapCategory(field.getGenericType())) {
 							field.set(instance, value);
 						}
@@ -403,6 +405,14 @@ class ConfigCategory extends ConfigElement {
 
 			return instance;
 		}
+	}
+
+	private static String getName(BetterConfig settings, Type type, Field field) {
+		String name = AnnotationUtil.map(field, Config.Name.class, Config.Name::value, field.getName());
+		if (ConfigUtil.isNonMapCategory(field.getGenericType()) && settings.lowerCaseCategories()) {
+			name = name.toLowerCase();
+		}
+		return name;
 	}
 
 }

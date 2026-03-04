@@ -5,32 +5,47 @@ import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Objects;
 import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
 
 import meldexun.betterconfig.ConfigUtil;
+import meldexun.betterconfig.ConfigurationManager;
+import meldexun.betterconfig.api.BetterConfig;
 import meldexun.betterconfig.api.Order;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraftforge.common.config.Config;
-import net.minecraftforge.common.config.ConfigManager;
 import net.minecraftforge.fml.client.config.GuiConfig;
 import net.minecraftforge.fml.client.config.GuiConfigEntries;
 
 public class ConfigCategoryGui extends GuiConfig implements TitledGui, ConfigGui {
 
 	private final Supplier<String> titleSupplier;
+	private final BetterConfig settings;
 
 	public ConfigCategoryGui(GuiScreen parentScreen, String title, String modID) {
 		super(parentScreen, Collections.emptyList(), modID, null, false, false, null, null);
 		this.titleSupplier = () -> title;
-		this.entryList = new Entries(ConfigManager.getModConfigClasses(modID));
+		Class<?>[] configClasses = ConfigurationManager.get(modID);
+		if (configClasses.length == 1) {
+			this.settings = Objects.requireNonNull(configClasses[0].getAnnotation(BetterConfig.class));
+			this.entryList = new Entries(configClasses[0], null);
+		} else {
+			this.settings = null;
+			this.entryList = new Entries(configClasses);
+		}
 	}
 
-	public ConfigCategoryGui(GuiScreen parentScreen, Supplier<String> titleSupplier, Type type, @Nullable Object instance) {
+	public <T extends GuiScreen & ConfigGui> ConfigCategoryGui(T parentScreen, Supplier<String> titleSupplier, Type type, @Nullable Object instance) {
+		this(parentScreen, parentScreen.settings(), titleSupplier, type, instance);
+	}
+
+	public <T extends GuiScreen & ConfigGui> ConfigCategoryGui(T parentScreen, BetterConfig settings, Supplier<String> titleSupplier, Type type, @Nullable Object instance) {
 		super(parentScreen, Collections.emptyList(), "UNKNOWN", null, false, false, null, null);
 		this.titleSupplier = titleSupplier;
+		this.settings = settings;
 		this.entryList = new Entries(type, instance);
 	}
 
@@ -58,6 +73,11 @@ public class ConfigCategoryGui extends GuiConfig implements TitledGui, ConfigGui
 	}
 
 	@Override
+	public BetterConfig settings() {
+		return this.settings;
+	}
+
+	@Override
 	public void recalculateState() {
 
 	}
@@ -66,21 +86,8 @@ public class ConfigCategoryGui extends GuiConfig implements TitledGui, ConfigGui
 
 		public Entries(Class<?>... configTypes) {
 			super(ConfigCategoryGui.this, Minecraft.getMinecraft());
-			if (configTypes.length == 0) {
-				return;
-			}
-			if (configTypes.length == 1) {
-				Arrays.stream(ConfigUtil.getConfigFields(configTypes[0], true))
-						.sorted(Comparator.comparing(Field::getGenericType, Comparator.comparing(ConfigUtil::isNonMapCategory).reversed())
-								.thenComparingInt(f -> f.isAnnotationPresent(Order.class) ? f.getAnnotation(Order.class).value() : 0)
-								.thenComparing(f -> f.isAnnotationPresent(Config.Name.class) ? f.getAnnotation(Config.Name.class).value() : f.getName()))
-						.forEach(field -> {
-							this.listEntries.add(this.create(null, field));
-						});
-			} else {
-				for (Class<?> type : configTypes) {
-					this.listEntries.add(new ConfigCategoryGuiEntry(this, type));
-				}
+			for (Class<?> type : configTypes) {
+				this.listEntries.add(new ConfigCategoryGuiEntry(this, type));
 			}
 		}
 

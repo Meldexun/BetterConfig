@@ -1,40 +1,79 @@
 package meldexun.betterconfig;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.lang.reflect.Type;
+import java.lang.annotation.Annotation;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.regex.Matcher;
-
-import javax.annotation.Nullable;
 
 import org.apache.commons.lang3.ObjectUtils;
 
 import meldexun.betterconfig.api.BetterConfig;
-import meldexun.betterconfig.gui.EntryInfo;
 
 class Config {
 
-	final Type type;
-	final EntryInfo info;
-	final BetterConfig settings;
-	final ConfigCategory root = new ConfigCategory(this, DefaultSupplier.fallback(Map.class));
+	private static final BetterConfig DEFAULT_SETTINGS = new BetterConfig() {
+		@Override
+		public Class<? extends Annotation> annotationType() {
+			return BetterConfig.class;
+		}
 
-	Config(Path file, Type type) throws IOException {
-		this.type = type;
-		this.info = EntryInfo.create(TypeUtil.getRawType(type));
-		this.settings = TypeUtil.getRawType(type).getAnnotation(BetterConfig.class);
+		@Override
+		public String modid() {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public String name() {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public String category() {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public boolean lowerCaseCategories() {
+			return true;
+		}
+
+		@Override
+		public boolean bigCategoryComments() {
+			return true;
+		}
+
+		@Override
+		public boolean addRangesToComments() {
+			return true;
+		}
+
+		@Override
+		public boolean addDefaultsToComments() {
+			return true;
+		}
+
+		@Override
+		public boolean removeDeprecatedEntries() {
+			return false;
+		}
+	};
+	private final ConfigCategory root = new ConfigCategory(DefaultSupplier.fallback(Map.class));
+
+	void load(Path file) throws IOException {
+		this.root.type.reset();
+		this.root.info = null;
+		this.root.elements.clear();
+		this.root.subcategories.clear();
 		if (Files.exists(file)) {
 			try (ConfigReader reader = new ConfigReader(Files.newBufferedReader(file))) {
 				while (reader.hasNext()) {
 					Matcher matcher;
 					if ((matcher = reader.readMatching(ConfigCategory.CATEGORY)) != null) {
 						String name = ObjectUtils.defaultIfNull(matcher.group(1), matcher.group(2));
-						ConfigCategory subcategory = new ConfigCategory(this, DefaultSupplier.fallback(Map.class));
-						subcategory.read(reader);
-						this.root.subcategories.put(name, subcategory);
+						this.getOrCreateCategory(name).read(reader);
 					} else {
 						throw new IllegalArgumentException();
 					}
@@ -43,12 +82,13 @@ class Config {
 		}
 	}
 
-	void save(Path file) throws IOException {
+	void save(Path file, Function<String, BetterConfig> getCategorySettings) throws IOException {
 		try (ConfigWriter writer = new ConfigWriter(Files.newBufferedWriter(file))) {
 			writer.writeCommentLine("Configuration file");
 			writer.newLine();
-			for (Map.Entry<String, ConfigCategory> entry : this.root.subcategoriesSorted()) {
-				ConfigCategory.writeEntry(writer, entry.getKey(), entry.getValue());
+			for (Map.Entry<String, ? extends ConfigElement> entry : this.root.subcategoriesSorted()) {
+				BetterConfig settings = ObjectUtils.defaultIfNull(getCategorySettings.apply(entry.getKey()), DEFAULT_SETTINGS);
+				ConfigCategory.writeEntry(writer, settings, entry.getKey(), entry.getValue());
 				writer.newLine();
 				writer.newLine();
 				writer.newLine();
@@ -56,12 +96,11 @@ class Config {
 		}
 	}
 
-	String name(@Nullable Object instance, Field field) {
-		String name = EntryInfo.fromField(instance, field).name();
-		if (this.settings.lowerCaseCategories() && ConfigUtil.isNonMapCategory(field.getGenericType())) {
-			name = name.toLowerCase();
+	ConfigCategory getOrCreateCategory(String categoryName) {
+		if (categoryName.isEmpty()) {
+			return this.root;
 		}
-		return name;
+		return this.root.subcategories.computeIfAbsent(categoryName, k -> new ConfigCategory(DefaultSupplier.fallback(Map.class)));
 	}
 
 }

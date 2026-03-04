@@ -44,7 +44,12 @@ public class DefaultSupplier<T> implements Supplier<T> {
 
 	public void set(T value) {
 		this.value = Objects.requireNonNull(value);
-		this.defaultValue = null;
+	}
+
+	public void reset() {
+		if (this.defaultValue != null) {
+			this.value = null;
+		}
 	}
 
 	public DefaultSupplier<T> copy() {

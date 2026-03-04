@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 import meldexun.betterconfig.TypeUtil;
+import meldexun.betterconfig.api.BetterConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
@@ -16,14 +17,16 @@ import net.minecraftforge.fml.client.config.HoverChecker;
 public class ConfigMapGui extends GuiEditArray implements TitledGui, ConfigGui {
 
 	private final Supplier<String> titleSupplier;
+	private final BetterConfig settings;
 	private final EntryInfo info;
 	private final Type type;
 	private final Object defaultValue;
 	private final Object beforeValue;
 
-	public ConfigMapGui(GuiScreen parentScreen, Supplier<String> titleSupplier, EntryInfo info, Type type, Object defaultValue, Object beforeValue) {
+	public <T extends GuiScreen & ConfigGui> ConfigMapGui(T parentScreen, Supplier<String> titleSupplier, EntryInfo info, Type type, Object defaultValue, Object beforeValue) {
 		super(parentScreen, new DummyConfigElement(info, type, defaultValue), 0, new Object[0], true);
 		this.titleSupplier = titleSupplier;
+		this.settings = parentScreen.settings();
 		this.info = info;
 		this.type = type;
 		this.defaultValue = defaultValue;
@@ -87,6 +90,11 @@ public class ConfigMapGui extends GuiEditArray implements TitledGui, ConfigGui {
 
 	public void setValue(Object value) {
 		this.entryList = new Entries(value);
+	}
+
+	@Override
+	public BetterConfig settings() {
+		return this.settings;
 	}
 
 	public void recalculateState() {

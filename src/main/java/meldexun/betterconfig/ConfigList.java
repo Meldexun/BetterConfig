@@ -10,12 +10,14 @@ import java.util.Objects;
 
 import javax.annotation.Nullable;
 
+import meldexun.betterconfig.api.BetterConfig;
+
 class ConfigList extends ConfigElement {
 
 	final List<ConfigElement> list = new ArrayList<>();
 
-	ConfigList(Config config, DefaultSupplier<Type> type) {
-		super(config, type);
+	ConfigList(DefaultSupplier<Type> type) {
+		super(type);
 		if (!ConfigUtil.isList(this.type.getOrDefault())) {
 			throw new IllegalArgumentException();
 		}
@@ -26,19 +28,20 @@ class ConfigList extends ConfigElement {
 		if (!reader.readLine().equals("<")) {
 			throw new IllegalArgumentException();
 		}
+		this.list.clear();
 		while (!reader.readLineIfEqual(">")) {
-			ConfigElement element = ConfigElement.create(this.config, this.type.map(TypeUtil::getComponentOrElementType));
+			ConfigElement element = ConfigElement.create(this.type.map(TypeUtil::getComponentOrElementType));
 			element.read(reader);
 			this.list.add(element);
 		}
 	}
 
 	@Override
-	void write(ConfigWriter writer) throws IOException {
+	void write(ConfigWriter writer, BetterConfig settings) throws IOException {
 		writer.writeLine('<');
 		writer.incrementIndentation();
 		for (ConfigElement child : this.list) {
-			child.write(writer);
+			child.write(writer, settings);
 			writer.newLine();
 		}
 		writer.decrementIndentation();
@@ -46,7 +49,7 @@ class ConfigList extends ConfigElement {
 	}
 
 	@Override
-	void saveToConfig(Type type, @Nullable Object instance) {
+	void saveToConfig(BetterConfig settings, Type type, @Nullable Object instance) {
 		Objects.requireNonNull(type);
 		Objects.requireNonNull(instance);
 		if (!ConfigUtil.isList(type)) {
@@ -59,8 +62,8 @@ class ConfigList extends ConfigElement {
 			Type componentType = TypeUtil.getComponentType(type);
 
 			for (int i = 0; i < Array.getLength(instance); i++) {
-				ConfigElement element = ConfigElement.create(this.config, componentType);
-				element.saveToConfig(componentType, Array.get(instance, i));
+				ConfigElement element = ConfigElement.create(componentType);
+				element.saveToConfig(settings, componentType, Array.get(instance, i));
 				this.list.add(element);
 			}
 		} else if (TypeUtil.isCollection(type)) {
@@ -69,8 +72,8 @@ class ConfigList extends ConfigElement {
 			Type elementType = TypeUtil.getElementType(type);
 
 			for (Object value : (Collection<?>) instance) {
-				ConfigElement element = ConfigElement.create(this.config, elementType);
-				element.saveToConfig(elementType, value);
+				ConfigElement element = ConfigElement.create(elementType);
+				element.saveToConfig(settings, elementType, value);
 				this.list.add(element);
 			}
 		} else {
@@ -80,7 +83,7 @@ class ConfigList extends ConfigElement {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	Object loadFromConfig(Type type, @Nullable Object instance) {
+	Object loadFromConfig(BetterConfig settings, Type type, @Nullable Object instance) {
 		Objects.requireNonNull(type);
 		if (!ConfigUtil.isList(type) || this.type.existsAndNotEqual(type)) {
 			return instance;
@@ -94,7 +97,7 @@ class ConfigList extends ConfigElement {
 
 			Object array = Array.newInstance(TypeUtil.getRawType(componentType), this.list.size());
 			for (int i = 0; i < this.list.size(); i++) {
-				Array.set(array, i, this.list.get(i).loadFromConfig(componentType, TypeUtil.newInstance(componentType)));
+				Array.set(array, i, this.list.get(i).loadFromConfig(settings, componentType, TypeUtil.newInstance(componentType)));
 			}
 
 			return array;
@@ -106,7 +109,7 @@ class ConfigList extends ConfigElement {
 
 			Collection<Object> collection = (Collection<Object>) TypeUtil.newInstance(type, instance);
 			for (ConfigElement value : this.list) {
-				collection.add(value.loadFromConfig(elementType, TypeUtil.newInstance(elementType)));
+				collection.add(value.loadFromConfig(settings, elementType, TypeUtil.newInstance(elementType)));
 			}
 
 			return collection;

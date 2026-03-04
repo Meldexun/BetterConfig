@@ -6,32 +6,31 @@ import java.util.Objects;
 
 import javax.annotation.Nullable;
 
+import meldexun.betterconfig.api.BetterConfig;
 import meldexun.betterconfig.gui.EntryInfo;
 
 abstract class ConfigElement {
 
-	final Config config;
 	final DefaultSupplier<Type> type;
 	@Nullable
 	EntryInfo info;
 
-	ConfigElement(Config config, DefaultSupplier<Type> type) {
-		this.config = config;
+	ConfigElement(DefaultSupplier<Type> type) {
 		this.type = Objects.requireNonNull(type).copy();
 	}
 
-	static ConfigElement create(Config config, Type type) {
-		return create(config, DefaultSupplier.of(type));
+	static ConfigElement create(Type type) {
+		return create(DefaultSupplier.of(type));
 	}
 
-	static ConfigElement create(Config config, DefaultSupplier<Type> type) {
+	static ConfigElement create(DefaultSupplier<Type> type) {
 		if (ConfigUtil.isValue(type.getOrDefault())) {
-			return new ConfigValue(config, type);
+			return new ConfigValue(type);
 		}
 		if (ConfigUtil.isList(type.getOrDefault())) {
-			return new ConfigList(config, type);
+			return new ConfigList(type);
 		}
-		return new ConfigCategory(config, type);
+		return new ConfigCategory(type);
 	}
 
 	boolean isConfigTypeEqual(Type type) {
@@ -40,9 +39,9 @@ abstract class ConfigElement {
 
 	abstract void read(ConfigReader reader) throws IOException;
 
-	abstract void write(ConfigWriter writer) throws IOException;
+	abstract void write(ConfigWriter writer, BetterConfig settings) throws IOException;
 
-	void loadInfo(Type type, EntryInfo info, @Nullable Object instance) {
+	void loadInfo(BetterConfig settings, Type type, EntryInfo info, @Nullable Object instance) {
 		Objects.requireNonNull(type);
 		Objects.requireNonNull(info);
 		if (!this.isConfigTypeEqual(type)) {
@@ -52,9 +51,9 @@ abstract class ConfigElement {
 		this.info = info;
 	}
 
-	abstract void saveToConfig(Type type, @Nullable Object instance);
+	abstract void saveToConfig(BetterConfig settings, Type type, @Nullable Object instance);
 
-	abstract Object loadFromConfig(Type type, @Nullable Object instance);
+	abstract Object loadFromConfig(BetterConfig settings, Type type, @Nullable Object instance);
 
 	@Nullable
 	EntryInfo info() {

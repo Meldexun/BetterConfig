@@ -6,6 +6,7 @@ import java.util.Objects;
 import javax.annotation.Nullable;
 
 import meldexun.betterconfig.ConfigUtil;
+import meldexun.betterconfig.api.BetterConfig;
 import meldexun.betterconfig.gui.entry.AbstractEntry;
 import meldexun.betterconfig.gui.entry.CategoryEntry;
 import net.minecraft.client.gui.GuiScreen;
@@ -48,7 +49,7 @@ public class ConfigCategoryGuiEntry extends ListEntryBase implements IGuiListEnt
 		this.field = null;
 		this.info = EntryInfo.create(type);
 		this.beforeValue = null;
-		this.entry = new CategoryEntry((T) this.owningScreen, this.info::guiName, this.info, type, null);
+		this.entry = new CategoryEntry((T) this.owningScreen, type.getAnnotation(BetterConfig.class), this.info::guiName, this.info, type, null);
 		this.drawLabel = false;
 		((CategoryEntry) this.entry).getButton().displayString = this.getName();
 		this.tooltipHoverChecker = new HoverChecker(((CategoryEntry) this.entry).getButton(), 800);

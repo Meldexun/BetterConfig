@@ -7,6 +7,7 @@ import org.spongepowered.asm.mixin.MixinEnvironment;
 
 import com.llamalad7.mixinextras.MixinExtrasBootstrap;
 
+import net.minecraft.launchwrapper.Launch;
 import net.minecraftforge.fml.relauncher.CoreModManager;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
 
@@ -15,7 +16,7 @@ import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
 public class BetterConfigPlugin implements IFMLLoadingPlugin {
 
 	public BetterConfigPlugin() {
-
+		Launch.classLoader.registerTransformer(BetterConfigClassTransformer.class.getName());
 	}
 
 	@Override
