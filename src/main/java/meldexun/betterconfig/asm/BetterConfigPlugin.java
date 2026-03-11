@@ -12,7 +12,7 @@ import net.minecraftforge.fml.relauncher.CoreModManager;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
 
 @IFMLLoadingPlugin.MCVersion("1.12.2")
-@IFMLLoadingPlugin.TransformerExclusions("meldexun.betterconfig.asm")
+@IFMLLoadingPlugin.TransformerExclusions({ "meldexun.betterconfig.asm", "meldexun.asmutil2" })
 public class BetterConfigPlugin implements IFMLLoadingPlugin {
 
 	public BetterConfigPlugin() {
