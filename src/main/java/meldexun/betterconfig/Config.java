@@ -68,10 +68,7 @@ class Config {
 	private final ConfigCategory root = new ConfigCategory(DefaultSupplier.fallback(Map.class));
 
 	void load(Path file) throws IOException {
-		this.root.type.reset();
-		this.root.info = null;
-		this.root.elements.clear();
-		this.root.subcategories.clear();
+		this.root.clear();
 		if (Files.exists(file)) {
 			try (ConfigReader reader = new ConfigReader(Files.newBufferedReader(file))) {
 				while (reader.hasNext()) {

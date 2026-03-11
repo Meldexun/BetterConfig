@@ -42,17 +42,23 @@ class ConfigCategory extends ConfigElement {
 
 	ConfigCategory(DefaultSupplier<Type> type) {
 		super(type);
-		if (!ConfigUtil.isCategory(this.type.getOrDefault())) {
+		if (!ConfigUtil.isCategory(this.type().getOrDefault())) {
 			throw new IllegalArgumentException();
 		}
+	}
+
+	void clear() {
+		super.clear();
+		this.elements.clear();
+		this.subcategories.clear();
 	}
 
 	List<Map.Entry<String, ? extends ConfigElement>> elements(ConfigComparator... order) {
 		List<Map.Entry<String, ? extends ConfigElement>> list = new ArrayList<>();
 		list.addAll(this.subcategories.entrySet());
 		list.addAll(this.elements.entrySet());
-		if (ConfigUtil.isNonMapCategory(this.type.getOrDefault())) {
-			list.sort(OrderUtil.buildComparator(order, this.type.getOrDefault(), Map.Entry::getKey, e -> e.getValue().type.getOrDefault(), e -> e.getValue().info() != null ? e.getValue().info().order() : 0));
+		if (ConfigUtil.isNonMapCategory(this.type().getOrDefault())) {
+			list.sort(OrderUtil.buildComparator(order, this.type().getOrDefault(), Map.Entry::getKey, e -> e.getValue().type().getOrDefault(), e -> e.getValue().info() != null ? e.getValue().info().order() : 0));
 		}
 		return list;
 	}
@@ -193,7 +199,7 @@ class ConfigCategory extends ConfigElement {
 							writer.write(' ');
 						}
 						writer.write("Default: ");
-						writer.write(TypeUtil.toString(element.type.get(), info.defaultValue()));
+						writer.write(TypeUtil.toString(element.type().get(), info.defaultValue()));
 					}
 					writer.newLine();
 				}
@@ -225,7 +231,7 @@ class ConfigCategory extends ConfigElement {
 	}
 
 	static String serializeType(ConfigValue value) {
-		return Character.toString(serializeType(value.type.getOrDefault()));
+		return Character.toString(serializeType(value.type().getOrDefault()));
 	}
 
 	static char serializeType(Type type) {
@@ -243,7 +249,7 @@ class ConfigCategory extends ConfigElement {
 
 	static String serializeType(ConfigList list) {
 		StringBuilder sb = new StringBuilder();
-		Type type = TypeUtil.getComponentOrElementType(list.type.getOrDefault());
+		Type type = TypeUtil.getComponentOrElementType(list.type().getOrDefault());
 		while (TypeUtil.isArrayOrCollection(type)) {
 			sb.append('L');
 			type = TypeUtil.getComponentOrElementType(type);
@@ -303,7 +309,7 @@ class ConfigCategory extends ConfigElement {
 			throw new IllegalArgumentException();
 		}
 
-		this.type.set(type);
+		this.type().set(type);
 		if (TypeUtil.isMap(type)) {
 			Objects.requireNonNull(instance);
 
@@ -349,7 +355,7 @@ class ConfigCategory extends ConfigElement {
 	@Override
 	Object loadFromConfig(BetterConfig settings, Type type, @Nullable Object instance) {
 		Objects.requireNonNull(type);
-		if (!ConfigUtil.isCategory(type) || this.type.existsAndNotEqual(type)) {
+		if (!ConfigUtil.isCategory(type) || this.type().existsAndNotEqual(type)) {
 			return instance;
 		}
 

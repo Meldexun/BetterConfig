@@ -4,11 +4,11 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Objects;
 import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
 
+import meldexun.betterconfig.AnnotationUtil;
 import meldexun.betterconfig.ConfigUtil;
 import meldexun.betterconfig.ConfigurationManager;
 import meldexun.betterconfig.OrderUtil;
@@ -28,7 +28,7 @@ public class ConfigCategoryGui extends GuiConfig implements TitledGui, ConfigGui
 		this.titleSupplier = () -> title;
 		Class<?>[] configClasses = ConfigurationManager.get(modID);
 		if (configClasses.length == 1) {
-			this.settings = Objects.requireNonNull(configClasses[0].getAnnotation(BetterConfig.class));
+			this.settings = AnnotationUtil.getOrThrow(configClasses[0], BetterConfig.class);
 			this.entryList = new Entries(configClasses[0], null);
 		} else {
 			this.settings = null;
@@ -94,12 +94,8 @@ public class ConfigCategoryGui extends GuiConfig implements TitledGui, ConfigGui
 			Arrays.stream(ConfigUtil.getConfigFields(type, instance == null))
 					.sorted(OrderUtil.buildComparator(ConfigCategoryGui.this.settings().elementOrder(), type, f -> EntryInfo.fromField(instance, f).name(), Field::getGenericType, f -> EntryInfo.fromField(instance, f).order()))
 					.forEach(field -> {
-						this.listEntries.add(this.create(instance, field));
+						this.listEntries.add(new ConfigCategoryGuiEntry(this, instance, field));
 					});
-		}
-
-		private IConfigEntry create(@Nullable Object instance, Field field) {
-			return new ConfigCategoryGuiEntry(this, instance, field);
 		}
 
 		@Override

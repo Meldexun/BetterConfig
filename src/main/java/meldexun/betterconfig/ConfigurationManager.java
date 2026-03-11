@@ -6,14 +6,14 @@ import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.SetMultimap;
 
 import meldexun.betterconfig.api.BetterConfig;
 import meldexun.betterconfig.gui.EntryInfo;
@@ -23,12 +23,12 @@ import net.minecraftforge.fml.common.LoaderException;
 public class ConfigurationManager {
 
 	private static final Path CONFIG_DIRECTORY = (Launch.minecraftHome != null ? Launch.minecraftHome : new File(".")).toPath().resolve("config");
-	private static final Map<String, Multimap<Path, Class<?>>> MODID_2_FILE_2_CONFIG_CLASSES = new HashMap<>();
+	private static final Map<String, SetMultimap<Path, Class<?>>> MODID_2_FILE_2_CONFIG_CLASSES = new HashMap<>();
 	private static final Map<Path, Config> CONFIGS = new HashMap<>();
-	private static final Multimap<Path, String> LOADED_CATEGORIES = HashMultimap.create();
+	private static final SetMultimap<Path, String> LOADED_CATEGORIES = HashMultimap.create();
 
 	public static synchronized void register(Class<?> configClass) {
-		BetterConfig configAnnotation = Objects.requireNonNull(configClass.getAnnotation(BetterConfig.class));
+		BetterConfig configAnnotation = AnnotationUtil.getOrThrow(configClass, BetterConfig.class);
 		String modid = configAnnotation.modid();
 		if (StringUtils.isBlank(modid)) {
 			throw new LoaderException("BetterConfig annotation modid of class " + configClass.getName() + " may not be blank!");
@@ -39,7 +39,7 @@ public class ConfigurationManager {
 	}
 
 	public static synchronized void sync(String modid) {
-		MODID_2_FILE_2_CONFIG_CLASSES.getOrDefault(modid, HashMultimap.create())
+		MODID_2_FILE_2_CONFIG_CLASSES.getOrDefault(modid, ImmutableSetMultimap.of())
 				.asMap()
 				.forEach((file, configClasses) -> {
 					try {
@@ -54,7 +54,7 @@ public class ConfigurationManager {
 						});
 
 						for (Class<?> configClass : configClasses) {
-							BetterConfig settings = configClass.getAnnotation(BetterConfig.class);
+							BetterConfig settings = AnnotationUtil.getOrThrow(configClass, BetterConfig.class);
 							String categoryName = settings.category();
 							ConfigCategory category = config.getOrCreateCategory(categoryName);
 							if (LOADED_CATEGORIES.put(file, categoryName)) {
@@ -65,7 +65,7 @@ public class ConfigurationManager {
 						}
 
 						config.save(file, configClasses.stream()
-								.map(c -> c.getAnnotation(BetterConfig.class))
+								.map(c -> AnnotationUtil.getOrThrow(c, BetterConfig.class))
 								.collect(Collectors.toMap(BetterConfig::category, Function.identity()))::get);
 					} catch (Exception e) {
 						throw new LoaderException(e);

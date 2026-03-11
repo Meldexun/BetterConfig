@@ -4,21 +4,21 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.Iterator;
 
-public class ConfigWriter implements AutoCloseable {
+class ConfigWriter implements AutoCloseable {
 
 	private final BufferedWriter writer;
 	private int indentation;
 	private boolean lineStarted;
 
-	public ConfigWriter(BufferedWriter writer) {
+	ConfigWriter(BufferedWriter writer) {
 		this.writer = writer;
 	}
 
-	public <T> ConfigWriter write(Iterable<T> iterable, ThrowingBiConsumer<ConfigWriter, T, IOException> elementWriter) throws IOException {
+	<T> ConfigWriter write(Iterable<T> iterable, ThrowingBiConsumer<ConfigWriter, T, IOException> elementWriter) throws IOException {
 		return this.write(iterable, elementWriter, ConfigWriter::newLine);
 	}
 
-	public <T> ConfigWriter write(Iterable<T> iterable, ThrowingBiConsumer<ConfigWriter, T, IOException> elementWriter, ThrowingConsumer<ConfigWriter, IOException> separatorWriter) throws IOException {
+	<T> ConfigWriter write(Iterable<T> iterable, ThrowingBiConsumer<ConfigWriter, T, IOException> elementWriter, ThrowingConsumer<ConfigWriter, IOException> separatorWriter) throws IOException {
 		Iterator<T> iterator = iterable.iterator();
 		while (iterator.hasNext()) {
 			elementWriter.accept(this, iterator.next());
@@ -29,33 +29,33 @@ public class ConfigWriter implements AutoCloseable {
 		return this;
 	}
 
-	public ConfigWriter writeLine(char c) throws IOException {
+	ConfigWriter writeLine(char c) throws IOException {
 		return this.write(c).newLine();
 	}
 
-	public ConfigWriter writeLine(char c, int count) throws IOException {
+	ConfigWriter writeLine(char c, int count) throws IOException {
 		return this.write(c, count).newLine();
 	}
 
-	public ConfigWriter writeLine(String s) throws IOException {
+	ConfigWriter writeLine(String s) throws IOException {
 		return this.write(s).newLine();
 	}
 
-	public ConfigWriter writeCommentLine(String s) throws IOException {
+	ConfigWriter writeCommentLine(String s) throws IOException {
 		return this.startComment().writeLine(s);
 	}
 
-	public ConfigWriter startComment() throws IOException {
+	ConfigWriter startComment() throws IOException {
 		return this.write("# ");
 	}
 
-	public ConfigWriter write(char c) throws IOException {
+	ConfigWriter write(char c) throws IOException {
 		this.indent();
 		this.writer.write(c);
 		return this;
 	}
 
-	public ConfigWriter write(char c, int count) throws IOException {
+	ConfigWriter write(char c, int count) throws IOException {
 		this.indent();
 		for (int i = 0; i < count; i++) {
 			this.writer.write(c);
@@ -63,7 +63,7 @@ public class ConfigWriter implements AutoCloseable {
 		return this;
 	}
 
-	public ConfigWriter write(String s) throws IOException {
+	ConfigWriter write(String s) throws IOException {
 		this.indent();
 		this.writer.write(s);
 		return this;
@@ -78,18 +78,18 @@ public class ConfigWriter implements AutoCloseable {
 		}
 	}
 
-	public ConfigWriter newLine() throws IOException {
+	ConfigWriter newLine() throws IOException {
 		this.writer.newLine();
 		this.lineStarted = false;
 		return this;
 	}
 
-	public ConfigWriter incrementIndentation() {
+	ConfigWriter incrementIndentation() {
 		this.indentation++;
 		return this;
 	}
 
-	public ConfigWriter decrementIndentation() {
+	ConfigWriter decrementIndentation() {
 		this.indentation--;
 		return this;
 	}

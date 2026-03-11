@@ -9,24 +9,24 @@ import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
 
-public class ConfigReader implements AutoCloseable {
+class ConfigReader implements AutoCloseable {
 
 	private final BufferedReader reader;
 	private int lineNumber;
 	private String currentLine;
 
-	public ConfigReader(BufferedReader reader) {
+	ConfigReader(BufferedReader reader) {
 		this.reader = reader;
 	}
 
-	public String peekLine() throws IOException {
+	String peekLine() throws IOException {
 		if (this.currentLine == null) {
 			this.currentLine = this.nextLine();
 		}
 		return this.currentLine;
 	}
 
-	public String readLine() throws IOException {
+	String readLine() throws IOException {
 		String line = this.peekLine();
 		this.currentLine = null;
 		return line;
@@ -45,11 +45,11 @@ public class ConfigReader implements AutoCloseable {
 		return line;
 	}
 
-	public boolean readLineIfEqual(String s) throws IOException {
+	boolean readLineIfEqual(String s) throws IOException {
 		return this.readLineIfMatching(s::equals);
 	}
 
-	public boolean readLineIfMatching(Predicate<String> predicate) throws IOException {
+	boolean readLineIfMatching(Predicate<String> predicate) throws IOException {
 		if (!predicate.test(this.peekLine())) {
 			return false;
 		}
@@ -58,7 +58,7 @@ public class ConfigReader implements AutoCloseable {
 	}
 
 	@Nullable
-	public Matcher readMatching(Pattern pattern) throws IOException {
+	Matcher readMatching(Pattern pattern) throws IOException {
 		Matcher matcher = pattern.matcher(this.peekLine());
 		if (matcher.find()) {
 			this.currentLine = this.currentLine.substring(matcher.end());
@@ -67,7 +67,7 @@ public class ConfigReader implements AutoCloseable {
 		return null;
 	}
 
-	public boolean hasNext() throws IOException {
+	boolean hasNext() throws IOException {
 		try {
 			this.peekLine();
 			return true;
@@ -76,7 +76,7 @@ public class ConfigReader implements AutoCloseable {
 		}
 	}
 
-	public int lineNumber() {
+	int lineNumber() {
 		return this.lineNumber;
 	}
 

@@ -55,7 +55,7 @@ public class ConfigUtil {
 			Stream<Field> stream = Arrays.stream(rawType.getDeclaredFields())
 					.filter(f -> Modifier.isPublic(f.getModifiers()))
 					.filter(f -> Modifier.isStatic(f.getModifiers()) == staticFields)
-					.filter(f -> !f.isAnnotationPresent(Config.Ignore.class));
+					.filter(f -> !AnnotationUtil.isPresent(f, Config.Ignore.class));
 			Class<?> rawSuperType = rawType.getSuperclass();
 			if (rawSuperType != null && !rawSuperType.equals(Object.class)) {
 				stream = Stream.concat(Arrays.stream(getConfigFields(rawSuperType, staticFields)), stream);

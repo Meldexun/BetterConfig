@@ -10,6 +10,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.lang3.StringUtils;
 
+import meldexun.betterconfig.AnnotationUtil;
 import meldexun.betterconfig.TypeUtil;
 import meldexun.betterconfig.api.BetterConfig;
 import meldexun.betterconfig.api.Order;
@@ -78,7 +79,7 @@ public interface EntryInfo {
 		private double minDouble = -Double.MAX_VALUE;
 		private double maxDouble = Double.MAX_VALUE;
 		private boolean slidingOption;
-		private boolean modifiable;
+		private boolean modifiable = true;
 		private Object defaultValue;
 		private boolean requiresMcRestart;
 		private boolean requiresWorldRestart;
@@ -232,51 +233,33 @@ public interface EntryInfo {
 
 	static EntryInfo fromField(@Nullable Object instance, Field field) {
 		return CACHE.computeIfAbsent(instance, k -> new HashMap<>()).computeIfAbsent(field, k -> {
-			Builder builder = new Builder(field.isAnnotationPresent(Config.Name.class) ? field.getAnnotation(Config.Name.class).value() : field.getName());
-			if (field.isAnnotationPresent(Config.LangKey.class)) {
-				builder.setLangKey(field.getAnnotation(Config.LangKey.class).value());
-			}
-			if (field.isAnnotationPresent(Config.Comment.class)) {
-				builder.setComment(field.getAnnotation(Config.Comment.class).value());
-			}
-			if (field.isAnnotationPresent(RangeLong.class)) {
-				builder.setLongRange(field.getAnnotation(RangeLong.class).min(), field.getAnnotation(RangeLong.class).max());
-			} else if (field.isAnnotationPresent(Config.RangeInt.class)) {
-				builder.setLongRange(field.getAnnotation(Config.RangeInt.class).min(), field.getAnnotation(Config.RangeInt.class).max());
-			}
-			if (field.isAnnotationPresent(Config.RangeDouble.class)) {
-				builder.setDoubleRange(field.getAnnotation(Config.RangeDouble.class).min(), field.getAnnotation(Config.RangeDouble.class).max());
-			}
-			builder.setSlidingOption(field.isAnnotationPresent(Config.SlidingOption.class));
-			builder.setModifiable(!field.isAnnotationPresent(Unmodifiable.class));
+			Builder builder = new Builder(AnnotationUtil.map(field, Config.Name.class, Config.Name::value, field.getName()));
+			AnnotationUtil.ifPresent(field, Config.LangKey.class, langKey -> builder.setLangKey(langKey.value()));
+			AnnotationUtil.ifPresent(field, Config.Comment.class, comment -> builder.setComment(comment.value()));
+			AnnotationUtil.ifPresent(field, Config.RequiresMcRestart.class, a -> builder.setRequiresMcRestart(true));
+			AnnotationUtil.ifPresent(field, Config.RequiresWorldRestart.class, a -> builder.setRequiresWorldRestart(true));
+			AnnotationUtil.ifPresent(field, Config.RangeInt.class, rangeInt -> builder.setLongRange(rangeInt.min(), rangeInt.max()));
+			AnnotationUtil.ifPresent(field, Config.RangeDouble.class, rangeDouble -> builder.setDoubleRange(rangeDouble.min(), rangeDouble.max()));
+			AnnotationUtil.ifPresent(field, Config.SlidingOption.class, a -> builder.setSlidingOption(true));
 			try {
 				builder.setDefaultValue(TypeUtil.copy(field.getGenericType(), field.get(instance)));
 			} catch (IllegalArgumentException | IllegalAccessException e) {
 				throw new UnsupportedOperationException(e);
 			}
-			builder.setRequiresMcRestart(field.isAnnotationPresent(Config.RequiresMcRestart.class));
-			builder.setRequiresWorldRestart(field.isAnnotationPresent(Config.RequiresWorldRestart.class));
-			if (field.isAnnotationPresent(Order.class)) {
-				builder.setOrder(field.getAnnotation(Order.class).value());
-			}
+			AnnotationUtil.ifPresent(field, RangeLong.class, rangeLong -> builder.setLongRange(rangeLong.min(), rangeLong.max()));
+			AnnotationUtil.ifPresent(field, Unmodifiable.class, a -> builder.setModifiable(false));
+			AnnotationUtil.ifPresent(field, Order.class, order -> builder.setOrder(order.value()));
 			return builder.build();
 		});
 	}
 
 	static EntryInfo create(Class<?> type) {
-		if (!type.isAnnotationPresent(BetterConfig.class)) {
-			throw new IllegalArgumentException();
-		}
-		BetterConfig annotation = type.getAnnotation(BetterConfig.class);
-		Builder builder = new Builder(!annotation.name().isEmpty() ? annotation.name() : annotation.modid());
-		if (type.isAnnotationPresent(Config.LangKey.class)) {
-			builder.setLangKey(type.getAnnotation(Config.LangKey.class).value());
-		}
-		if (type.isAnnotationPresent(Config.Comment.class)) {
-			builder.setComment(type.getAnnotation(Config.Comment.class).value());
-		}
-		builder.setRequiresMcRestart(type.isAnnotationPresent(Config.RequiresMcRestart.class));
-		builder.setRequiresWorldRestart(type.isAnnotationPresent(Config.RequiresWorldRestart.class));
+		BetterConfig annotation = AnnotationUtil.getOrThrow(type, BetterConfig.class);
+		Builder builder = new Builder(StringUtils.defaultIfEmpty(annotation.name(), annotation.modid()));
+		AnnotationUtil.ifPresent(type, Config.LangKey.class, langKey -> builder.setLangKey(langKey.value()));
+		AnnotationUtil.ifPresent(type, Config.Comment.class, comment -> builder.setComment(comment.value()));
+		AnnotationUtil.ifPresent(type, Config.RequiresMcRestart.class, a -> builder.setRequiresMcRestart(true));
+		AnnotationUtil.ifPresent(type, Config.RequiresWorldRestart.class, a -> builder.setRequiresWorldRestart(true));
 		return builder.build();
 	}
 

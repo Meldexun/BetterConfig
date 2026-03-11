@@ -13,7 +13,7 @@ import net.minecraftforge.fml.client.config.GuiConfigEntries.IConfigEntry;
 import net.minecraftforge.fml.client.config.GuiEditArrayEntries.IArrayEntry;
 import net.minecraftforge.fml.client.config.IConfigElement;
 
-public class DummyConfigElement implements IConfigElement {
+class DummyConfigElement implements IConfigElement {
 
 	private final EntryInfo info;
 	private final Type type;
@@ -21,11 +21,11 @@ public class DummyConfigElement implements IConfigElement {
 	private final ConfigGuiType configType;
 	private final boolean isList;
 
-	public DummyConfigElement(EntryInfo info, Type type) {
+	DummyConfigElement(EntryInfo info, Type type) {
 		this(info, type, info.defaultValue());
 	}
 
-	public DummyConfigElement(EntryInfo info, Type type, Object defaultValue) {
+	DummyConfigElement(EntryInfo info, Type type, Object defaultValue) {
 		this.info = info;
 		this.type = type;
 		this.defaultValue = defaultValue;

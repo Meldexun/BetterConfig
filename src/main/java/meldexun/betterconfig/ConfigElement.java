@@ -11,9 +11,9 @@ import meldexun.betterconfig.gui.EntryInfo;
 
 abstract class ConfigElement {
 
-	final DefaultSupplier<Type> type;
+	private final DefaultSupplier<Type> type;
 	@Nullable
-	EntryInfo info;
+	private EntryInfo info;
 
 	ConfigElement(DefaultSupplier<Type> type) {
 		this.type = Objects.requireNonNull(type).copy();
@@ -37,6 +37,11 @@ abstract class ConfigElement {
 		return ConfigUtil.isConfigTypeEqual(this.type.getOrDefault(), type);
 	}
 
+	void clear() {
+		this.type.reset();
+		this.info = null;
+	}
+
 	abstract void read(ConfigReader reader) throws IOException;
 
 	abstract void write(ConfigWriter writer, BetterConfig settings) throws IOException;
@@ -54,6 +59,10 @@ abstract class ConfigElement {
 	abstract void saveToConfig(BetterConfig settings, Type type, @Nullable Object instance);
 
 	abstract Object loadFromConfig(BetterConfig settings, Type type, @Nullable Object instance);
+
+	DefaultSupplier<Type> type() {
+		return type;
+	}
 
 	@Nullable
 	EntryInfo info() {

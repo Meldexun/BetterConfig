@@ -10,20 +10,25 @@ import meldexun.betterconfig.api.BetterConfig;
 
 class ConfigValue extends ConfigElement {
 
-	String value;
+	private String value;
 
 	ConfigValue(DefaultSupplier<Type> type) {
 		super(type);
-		if (!ConfigUtil.isValue(this.type.getOrDefault())) {
+		if (!ConfigUtil.isValue(this.type().getOrDefault())) {
 			throw new IllegalArgumentException();
 		}
-		this.value = TypeAdapters.get(this.type.getOrDefault()).defaultSerializedValue();
+		this.value = TypeAdapters.get(this.type().getOrDefault()).defaultSerializedValue();
+	}
+
+	void clear() {
+		super.clear();
+		this.value = null;
 	}
 
 	@Override
 	void read(ConfigReader reader) throws IOException {
 		String value = reader.readLine();
-		if (!TypeAdapters.get(this.type.getOrDefault()).isSerializedValue(value)) {
+		if (!TypeAdapters.get(this.type().getOrDefault()).isSerializedValue(value)) {
 			throw new IllegalArgumentException();
 		}
 		this.value = value;
@@ -41,14 +46,14 @@ class ConfigValue extends ConfigElement {
 		if (!ConfigUtil.isValue(type)) {
 			throw new IllegalArgumentException();
 		}
-		this.type.set(type);
+		this.type().set(type);
 		this.value = TypeAdapters.get(type).serialize(instance);
 	}
 
 	@Override
 	Object loadFromConfig(BetterConfig settings, Type type, @Nullable Object instance) {
 		Objects.requireNonNull(type);
-		if (!ConfigUtil.isValue(type) || this.type.existsAndNotEqual(type)) {
+		if (!ConfigUtil.isValue(type) || this.type().existsAndNotEqual(type)) {
 			return instance;
 		}
 		return TypeAdapters.get(type).deserialize(this.value);

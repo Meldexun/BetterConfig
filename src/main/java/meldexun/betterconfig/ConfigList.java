@@ -14,13 +14,18 @@ import meldexun.betterconfig.api.BetterConfig;
 
 class ConfigList extends ConfigElement {
 
-	final List<ConfigElement> list = new ArrayList<>();
+	private final List<ConfigElement> list = new ArrayList<>();
 
 	ConfigList(DefaultSupplier<Type> type) {
 		super(type);
-		if (!ConfigUtil.isList(this.type.getOrDefault())) {
+		if (!ConfigUtil.isList(this.type().getOrDefault())) {
 			throw new IllegalArgumentException();
 		}
+	}
+
+	void clear() {
+		super.clear();
+		this.list.clear();
 	}
 
 	@Override
@@ -30,7 +35,7 @@ class ConfigList extends ConfigElement {
 		}
 		this.list.clear();
 		while (!reader.readLineIfEqual(">")) {
-			ConfigElement element = ConfigElement.create(this.type.map(TypeUtil::getComponentOrElementType));
+			ConfigElement element = ConfigElement.create(this.type().map(TypeUtil::getComponentOrElementType));
 			element.read(reader);
 			this.list.add(element);
 		}
@@ -57,7 +62,7 @@ class ConfigList extends ConfigElement {
 		}
 
 		if (TypeUtil.isArray(type)) {
-			this.type.set(type);
+			this.type().set(type);
 			this.list.clear();
 			Type componentType = TypeUtil.getComponentType(type);
 
@@ -67,7 +72,7 @@ class ConfigList extends ConfigElement {
 				this.list.add(element);
 			}
 		} else if (TypeUtil.isCollection(type)) {
-			this.type.set(type);
+			this.type().set(type);
 			this.list.clear();
 			Type elementType = TypeUtil.getElementType(type);
 
@@ -85,13 +90,13 @@ class ConfigList extends ConfigElement {
 	@Override
 	Object loadFromConfig(BetterConfig settings, Type type, @Nullable Object instance) {
 		Objects.requireNonNull(type);
-		if (!ConfigUtil.isList(type) || this.type.existsAndNotEqual(type)) {
+		if (!ConfigUtil.isList(type) || this.type().existsAndNotEqual(type)) {
 			return instance;
 		}
 
 		if (TypeUtil.isArray(type)) {
 			Type componentType = TypeUtil.getComponentType(type);
-			if (!ConfigUtil.isConfigTypeEqual(componentType, TypeUtil.getComponentOrElementType(this.type.getOrDefault()))) {
+			if (!ConfigUtil.isConfigTypeEqual(componentType, TypeUtil.getComponentOrElementType(this.type().getOrDefault()))) {
 				return instance;
 			}
 
@@ -103,7 +108,7 @@ class ConfigList extends ConfigElement {
 			return array;
 		} else if (TypeUtil.isCollection(type)) {
 			Type elementType = TypeUtil.getElementType(type);
-			if (!ConfigUtil.isConfigTypeEqual(elementType, TypeUtil.getComponentOrElementType(this.type.getOrDefault()))) {
+			if (!ConfigUtil.isConfigTypeEqual(elementType, TypeUtil.getComponentOrElementType(this.type().getOrDefault()))) {
 				return instance;
 			}
 
