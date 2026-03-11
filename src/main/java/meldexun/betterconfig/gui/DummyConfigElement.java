@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.reflect.TypeUtils;
 
+import meldexun.betterconfig.ConfigElementMetadata;
 import meldexun.betterconfig.TypeAdapters;
 import meldexun.betterconfig.TypeUtil;
 import net.minecraftforge.fml.client.config.ConfigGuiType;
@@ -15,18 +16,18 @@ import net.minecraftforge.fml.client.config.IConfigElement;
 
 class DummyConfigElement implements IConfigElement {
 
-	private final EntryInfo info;
+	private final ConfigElementMetadata metadata;
 	private final Type type;
 	private final Object defaultValue;
 	private final ConfigGuiType configType;
 	private final boolean isList;
 
-	DummyConfigElement(EntryInfo info, Type type) {
-		this(info, type, info.defaultValue());
+	DummyConfigElement(ConfigElementMetadata metadata, Type type) {
+		this(metadata, type, metadata.defaultValue());
 	}
 
-	DummyConfigElement(EntryInfo info, Type type, Object defaultValue) {
-		this.info = info;
+	DummyConfigElement(ConfigElementMetadata metadata, Type type, Object defaultValue) {
+		this.metadata = metadata;
 		this.type = type;
 		this.defaultValue = defaultValue;
 		if (TypeAdapters.hasAdapter(type)) {
@@ -72,22 +73,22 @@ class DummyConfigElement implements IConfigElement {
 
 	@Override
 	public String getName() {
-		return this.info.name();
+		return this.metadata.name();
 	}
 
 	@Override
 	public String getQualifiedName() {
-		return this.info.name();
+		return this.metadata.name();
 	}
 
 	@Override
 	public String getLanguageKey() {
-		return this.info.hasLangKey() ? this.info.langKey() : this.info.name();
+		return this.metadata.hasLangKey() ? this.metadata.langKey() : this.metadata.name();
 	}
 
 	@Override
 	public String getComment() {
-		return this.info.hasComment() ? this.info.comment() : null;
+		return this.metadata.hasComment() ? this.metadata.comment() : null;
 	}
 
 	@Override
@@ -102,12 +103,12 @@ class DummyConfigElement implements IConfigElement {
 
 	@Override
 	public boolean requiresWorldRestart() {
-		return this.info.requiresWorldRestart();
+		return this.metadata.requiresWorldRestart();
 	}
 
 	@Override
 	public boolean requiresMcRestart() {
-		return this.info.requiresMcRestart();
+		return this.metadata.requiresMcRestart();
 	}
 
 	@Override
@@ -117,7 +118,7 @@ class DummyConfigElement implements IConfigElement {
 
 	@Override
 	public boolean isListLengthFixed() {
-		return !this.info.modifiable();
+		return !this.metadata.modifiable();
 	}
 
 	@Override
@@ -200,20 +201,28 @@ class DummyConfigElement implements IConfigElement {
 	@Deprecated
 	@Override
 	public Object getMinValue() {
-		if (this.info.hasLongRange()) return this.info.minLong();
-		if (this.info.hasDoubleRange()) return this.info.minDouble();
-		if (this.getType() == ConfigGuiType.INTEGER) return Integer.MIN_VALUE;
-		if (this.getType() == ConfigGuiType.DOUBLE) return -Double.MAX_VALUE;
+		if (this.metadata.hasLongRange())
+			return this.metadata.minLong();
+		if (this.metadata.hasDoubleRange())
+			return this.metadata.minDouble();
+		if (this.getType() == ConfigGuiType.INTEGER)
+			return Integer.MIN_VALUE;
+		if (this.getType() == ConfigGuiType.DOUBLE)
+			return -Double.MAX_VALUE;
 		return null;
 	}
 
 	@Deprecated
 	@Override
 	public Object getMaxValue() {
-		if (this.info.hasLongRange()) return this.info.maxLong();
-		if (this.info.hasDoubleRange()) return this.info.maxDouble();
-		if (this.getType() == ConfigGuiType.INTEGER) return Integer.MAX_VALUE;
-		if (this.getType() == ConfigGuiType.DOUBLE) return Double.MAX_VALUE;
+		if (this.metadata.hasLongRange())
+			return this.metadata.maxLong();
+		if (this.metadata.hasDoubleRange())
+			return this.metadata.maxDouble();
+		if (this.getType() == ConfigGuiType.INTEGER)
+			return Integer.MAX_VALUE;
+		if (this.getType() == ConfigGuiType.DOUBLE)
+			return Double.MAX_VALUE;
 		return null;
 	}
 

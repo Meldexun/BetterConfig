@@ -3,10 +3,10 @@ package meldexun.betterconfig.gui.entry;
 import java.lang.reflect.Type;
 import java.util.function.Supplier;
 
+import meldexun.betterconfig.ConfigElementMetadata;
 import meldexun.betterconfig.TypeUtil;
 import meldexun.betterconfig.gui.ConfigGui;
 import meldexun.betterconfig.gui.ConfigListGui;
-import meldexun.betterconfig.gui.EntryInfo;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraftforge.fml.client.config.GuiButtonExt;
 
@@ -14,10 +14,10 @@ public class ListEntry extends ButtonEntry<GuiButtonExt> {
 
 	protected final ConfigListGui childScreen;
 
-	public <T extends GuiScreen & ConfigGui> ListEntry(T owningScreen, Supplier<String> childScreenTitle, EntryInfo info, Type type, Object defaultValue, Object beforeValue) {
-		super(info, type, beforeValue);
+	public <T extends GuiScreen & ConfigGui> ListEntry(T owningScreen, Supplier<String> childScreenTitle, ConfigElementMetadata metadata, Type type, Object defaultValue, Object beforeValue) {
+		super(metadata, type, beforeValue);
 
-		this.childScreen = new ConfigListGui(owningScreen, childScreenTitle, this.info, this.type, defaultValue, this.beforeValue) {
+		this.childScreen = new ConfigListGui(owningScreen, childScreenTitle, this.metadata, this.type, defaultValue, this.beforeValue) {
 			@Override
 			public void onGuiClosed() {
 				super.onGuiClosed();

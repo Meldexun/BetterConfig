@@ -4,9 +4,9 @@ import java.lang.reflect.Type;
 import java.util.Objects;
 import java.util.function.Predicate;
 
+import meldexun.betterconfig.ConfigElementMetadata;
 import meldexun.betterconfig.TypeAdapter;
 import meldexun.betterconfig.TypeAdapters;
-import meldexun.betterconfig.gui.EntryInfo;
 import net.minecraft.client.gui.GuiTextField;
 
 public class StringEntry extends AbstractEntry {
@@ -16,8 +16,8 @@ public class StringEntry extends AbstractEntry {
 	protected Predicate<String> validator;
 	protected boolean isValid;
 
-	public StringEntry(EntryInfo info, Type type, Object beforeValue) {
-		super(info, type, beforeValue);
+	public StringEntry(ConfigElementMetadata metadata, Type type, Object beforeValue) {
+		super(metadata, type, beforeValue);
 		this.typeAdapter = Objects.requireNonNull(TypeAdapters.get(this.type));
 		this.validator = this.typeAdapter::isSerializedValue;
 		this.textField = new GuiTextField(0, this.mc.fontRenderer, 0, 0, 200, 18) {

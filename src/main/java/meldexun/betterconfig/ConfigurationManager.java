@@ -16,7 +16,6 @@ import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.SetMultimap;
 
 import meldexun.betterconfig.api.BetterConfig;
-import meldexun.betterconfig.gui.EntryInfo;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraftforge.fml.common.LoaderException;
 
@@ -58,7 +57,7 @@ public class ConfigurationManager {
 							String categoryName = settings.category();
 							ConfigCategory category = config.getOrCreateCategory(categoryName);
 							if (LOADED_CATEGORIES.put(file, categoryName)) {
-								category.loadInfo(settings, configClass, EntryInfo.create(configClass), null);
+								category.loadAnnotations(settings, configClass, ConfigElementMetadata.create(configClass), null);
 								category.loadFromConfig(settings, configClass, null);
 							}
 							category.saveToConfig(settings, configClass, null);

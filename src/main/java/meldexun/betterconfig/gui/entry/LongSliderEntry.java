@@ -4,18 +4,18 @@ import java.lang.reflect.Type;
 
 import org.apache.commons.lang3.reflect.TypeUtils;
 
-import meldexun.betterconfig.gui.EntryInfo;
+import meldexun.betterconfig.ConfigElementMetadata;
 import net.minecraftforge.fml.client.config.GuiSlider;
 
 public class LongSliderEntry extends ButtonEntry<GuiSlider> {
 
-	public LongSliderEntry(EntryInfo info, Type type, Object beforeValue) {
-		super(info, type, beforeValue);
+	public LongSliderEntry(ConfigElementMetadata metadata, Type type, Object beforeValue) {
+		super(metadata, type, beforeValue);
 	}
 
 	@Override
 	protected GuiSlider createButton() {
-		return new GuiSlider(0, 0, 0, 200, 18, "", "", this.info.minLong(), this.info.maxLong(), ((Number) this.beforeValue).longValue(), false, true);
+		return new GuiSlider(0, 0, 0, 200, 18, "", "", this.metadata.minLong(), this.metadata.maxLong(), ((Number) this.beforeValue).longValue(), false, true);
 	}
 
 	@Override

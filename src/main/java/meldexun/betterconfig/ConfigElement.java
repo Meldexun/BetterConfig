@@ -7,13 +7,12 @@ import java.util.Objects;
 import javax.annotation.Nullable;
 
 import meldexun.betterconfig.api.BetterConfig;
-import meldexun.betterconfig.gui.EntryInfo;
 
 abstract class ConfigElement {
 
 	private final DefaultSupplier<Type> type;
 	@Nullable
-	private EntryInfo info;
+	private ConfigElementMetadata metadata;
 
 	ConfigElement(DefaultSupplier<Type> type) {
 		this.type = Objects.requireNonNull(type).copy();
@@ -39,21 +38,21 @@ abstract class ConfigElement {
 
 	void clear() {
 		this.type.reset();
-		this.info = null;
+		this.metadata = null;
 	}
 
 	abstract void read(ConfigReader reader) throws IOException;
 
 	abstract void write(ConfigWriter writer, BetterConfig settings) throws IOException;
 
-	void loadInfo(BetterConfig settings, Type type, EntryInfo info, @Nullable Object instance) {
+	void loadAnnotations(BetterConfig settings, Type type, ConfigElementMetadata metadata, @Nullable Object instance) {
 		Objects.requireNonNull(type);
-		Objects.requireNonNull(info);
+		Objects.requireNonNull(metadata);
 		if (!this.isConfigTypeEqual(type)) {
 			throw new IllegalArgumentException();
 		}
 		this.type.set(type);
-		this.info = info;
+		this.metadata = metadata;
 	}
 
 	abstract void saveToConfig(BetterConfig settings, Type type, @Nullable Object instance);
@@ -65,8 +64,8 @@ abstract class ConfigElement {
 	}
 
 	@Nullable
-	EntryInfo info() {
-		return info;
+	ConfigElementMetadata metadata() {
+		return metadata;
 	}
 
 }

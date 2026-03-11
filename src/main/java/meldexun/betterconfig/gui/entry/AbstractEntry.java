@@ -6,64 +6,64 @@ import java.util.function.Supplier;
 
 import org.apache.commons.lang3.reflect.TypeUtils;
 
+import meldexun.betterconfig.ConfigElementMetadata;
 import meldexun.betterconfig.TypeAdapters;
 import meldexun.betterconfig.TypeUtil;
 import meldexun.betterconfig.gui.ConfigGui;
-import meldexun.betterconfig.gui.EntryInfo;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 
 public abstract class AbstractEntry {
 
 	protected final Minecraft mc = Minecraft.getMinecraft();
-	protected final EntryInfo info;
+	protected final ConfigElementMetadata metadata;
 	protected final Type type;
 	protected final Object beforeValue;
 
-	public AbstractEntry(EntryInfo info, Type type, Object beforeValue) {
-		this.info = info;
+	public AbstractEntry(ConfigElementMetadata metadata, Type type, Object beforeValue) {
+		this.metadata = metadata;
 		this.type = type;
 		this.beforeValue = beforeValue;
 	}
 
-	public static <T extends GuiScreen & ConfigGui> AbstractEntry create(T owningScreen, Supplier<String> childScreenTitle, EntryInfo info, Type type, Object defaultValue, Object beforeValue) {
-		return create(owningScreen, childScreenTitle, info, type, defaultValue, Optional.of(beforeValue));
+	public static <T extends GuiScreen & ConfigGui> AbstractEntry create(T owningScreen, Supplier<String> childScreenTitle, ConfigElementMetadata metadata, Type type, Object defaultValue, Object beforeValue) {
+		return create(owningScreen, childScreenTitle, metadata, type, defaultValue, Optional.of(beforeValue));
 	}
 
-	public static <T extends GuiScreen & ConfigGui> AbstractEntry create(T owningScreen, Supplier<String> childScreenTitle, EntryInfo info, Type type, Object defaultValue, Optional<Object> beforeValue) {
+	public static <T extends GuiScreen & ConfigGui> AbstractEntry create(T owningScreen, Supplier<String> childScreenTitle, ConfigElementMetadata metadata, Type type, Object defaultValue, Optional<Object> beforeValue) {
 		if (TypeUtil.isEnum(type)) {
-			return new EnumEntry(info, type, beforeValue.orElse(TypeUtil.getEnumConstants(type)[0]));
+			return new EnumEntry(metadata, type, beforeValue.orElse(TypeUtil.getEnumConstants(type)[0]));
 		}
 		if (TypeAdapters.hasAdapter(type)) {
 			if (TypeUtils.isAssignable(type, boolean.class)) {
-				return new BooleanEntry(info, type, beforeValue.orElse(TypeUtil.newInstance(type)));
+				return new BooleanEntry(metadata, type, beforeValue.orElse(TypeUtil.newInstance(type)));
 			}
 			if (TypeUtils.isAssignable(type, byte.class)
 					|| TypeUtils.isAssignable(type, short.class)
 					|| TypeUtils.isAssignable(type, int.class)
 					|| TypeUtils.isAssignable(type, long.class)
 					|| TypeUtils.isAssignable(type, char.class)) {
-				if (info.slidingOption()) {
-					return new LongSliderEntry(info, type, beforeValue.orElse(TypeUtil.newInstance(type)));
+				if (metadata.slidingOption()) {
+					return new LongSliderEntry(metadata, type, beforeValue.orElse(TypeUtil.newInstance(type)));
 				}
-				return new LongEntry(info, type, beforeValue.orElse(TypeUtil.newInstance(type)));
+				return new LongEntry(metadata, type, beforeValue.orElse(TypeUtil.newInstance(type)));
 			}
 			if (TypeUtils.isAssignable(type, float.class)
 					|| TypeUtils.isAssignable(type, double.class)) {
-				if (info.slidingOption()) {
-					return new DoubleSliderEntry(info, type, beforeValue.orElse(TypeUtil.newInstance(type)));
+				if (metadata.slidingOption()) {
+					return new DoubleSliderEntry(metadata, type, beforeValue.orElse(TypeUtil.newInstance(type)));
 				}
-				return new DoubleEntry(info, type, beforeValue.orElse(TypeUtil.newInstance(type)));
+				return new DoubleEntry(metadata, type, beforeValue.orElse(TypeUtil.newInstance(type)));
 			}
-			return new StringEntry(info, type, beforeValue.orElse(TypeAdapters.get(type).defaultValue()));
+			return new StringEntry(metadata, type, beforeValue.orElse(TypeAdapters.get(type).defaultValue()));
 		}
 		if (TypeUtil.isArrayOrCollection(type)) {
-			return new ListEntry(owningScreen, childScreenTitle, info, type, defaultValue, beforeValue.orElseGet(() -> TypeUtil.newInstance(type)));
+			return new ListEntry(owningScreen, childScreenTitle, metadata, type, defaultValue, beforeValue.orElseGet(() -> TypeUtil.newInstance(type)));
 		}
 		if (TypeUtil.isMap(type)) {
-			return new MapEntry(owningScreen, childScreenTitle, info, type, defaultValue, beforeValue.orElseGet(() -> TypeUtil.newInstance(type)));
+			return new MapEntry(owningScreen, childScreenTitle, metadata, type, defaultValue, beforeValue.orElseGet(() -> TypeUtil.newInstance(type)));
 		}
-		return new CategoryEntry(owningScreen, childScreenTitle, info, type, beforeValue.orElseGet(() -> TypeUtil.newInstance(type)));
+		return new CategoryEntry(owningScreen, childScreenTitle, metadata, type, beforeValue.orElseGet(() -> TypeUtil.newInstance(type)));
 	}
 
 	public abstract void drawEntry(int index, int x, int y, int width, int height, int mouseX, int mouseY, boolean isSelected, float partialTicks);
@@ -87,16 +87,16 @@ public abstract class AbstractEntry {
 	public abstract Object getValue();
 
 	public boolean enabled() {
-		return !this.info.requiresWorldRestart() || this.mc.world == null;
+		return !this.metadata.requiresWorldRestart() || this.mc.world == null;
 	}
 
 	public boolean isDefault() {
-		return TypeUtil.equals(this.type, this.getValue(), this.info.defaultValue());
+		return TypeUtil.equals(this.type, this.getValue(), this.metadata.defaultValue());
 	}
 
 	public void setToDefault() {
 		if (this.enabled()) {
-			this.setValue(this.info.defaultValue());
+			this.setValue(this.metadata.defaultValue());
 		}
 	}
 
@@ -111,7 +111,7 @@ public abstract class AbstractEntry {
 	}
 
 	public boolean saveChanges() {
-		return this.info.requiresMcRestart();
+		return this.metadata.requiresMcRestart();
 	}
 
 }

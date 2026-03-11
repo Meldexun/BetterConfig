@@ -1,4 +1,4 @@
-package meldexun.betterconfig.gui;
+package meldexun.betterconfig;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -10,8 +10,6 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.lang3.StringUtils;
 
-import meldexun.betterconfig.AnnotationUtil;
-import meldexun.betterconfig.TypeUtil;
 import meldexun.betterconfig.api.BetterConfig;
 import meldexun.betterconfig.api.Order;
 import meldexun.betterconfig.api.RangeLong;
@@ -19,7 +17,7 @@ import meldexun.betterconfig.api.Unmodifiable;
 import net.minecraft.client.resources.I18n;
 import net.minecraftforge.common.config.Config;
 
-public interface EntryInfo {
+public interface ConfigElementMetadata {
 
 	String name();
 
@@ -133,7 +131,7 @@ public interface EntryInfo {
 			this.order = order;
 		}
 
-		public EntryInfo build() {
+		public ConfigElementMetadata build() {
 			String name = this.name;
 			String langKey = this.langKey;
 			String comment = this.comment;
@@ -149,7 +147,7 @@ public interface EntryInfo {
 			boolean requiresMcRestart = this.requiresMcRestart;
 			boolean requiresWorldRestart = this.requiresWorldRestart;
 			int order = this.order;
-			return new EntryInfo() {
+			return new ConfigElementMetadata() {
 				@Override
 				public String name() {
 					return name;
@@ -229,9 +227,9 @@ public interface EntryInfo {
 
 	}
 
-	static final Map<Object, Map<Field, EntryInfo>> CACHE = new WeakHashMap<>();
+	static final Map<Object, Map<Field, ConfigElementMetadata>> CACHE = new WeakHashMap<>();
 
-	static EntryInfo fromField(@Nullable Object instance, Field field) {
+	static ConfigElementMetadata fromField(@Nullable Object instance, Field field) {
 		return CACHE.computeIfAbsent(instance, k -> new HashMap<>()).computeIfAbsent(field, k -> {
 			Builder builder = new Builder(AnnotationUtil.map(field, Config.Name.class, Config.Name::value, field.getName()));
 			AnnotationUtil.ifPresent(field, Config.LangKey.class, langKey -> builder.setLangKey(langKey.value()));
@@ -253,7 +251,7 @@ public interface EntryInfo {
 		});
 	}
 
-	static EntryInfo create(Class<?> type) {
+	static ConfigElementMetadata create(Class<?> type) {
 		BetterConfig annotation = AnnotationUtil.getOrThrow(type, BetterConfig.class);
 		Builder builder = new Builder(StringUtils.defaultIfEmpty(annotation.name(), annotation.modid()));
 		AnnotationUtil.ifPresent(type, Config.LangKey.class, langKey -> builder.setLangKey(langKey.value()));

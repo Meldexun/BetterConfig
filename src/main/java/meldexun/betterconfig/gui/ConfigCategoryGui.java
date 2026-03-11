@@ -11,6 +11,7 @@ import javax.annotation.Nullable;
 import meldexun.betterconfig.AnnotationUtil;
 import meldexun.betterconfig.ConfigUtil;
 import meldexun.betterconfig.ConfigurationManager;
+import meldexun.betterconfig.ConfigElementMetadata;
 import meldexun.betterconfig.OrderUtil;
 import meldexun.betterconfig.api.BetterConfig;
 import net.minecraft.client.Minecraft;
@@ -92,7 +93,7 @@ public class ConfigCategoryGui extends GuiConfig implements TitledGui, ConfigGui
 		public Entries(Type type, @Nullable Object instance) {
 			super(ConfigCategoryGui.this, Minecraft.getMinecraft());
 			Arrays.stream(ConfigUtil.getConfigFields(type, instance == null))
-					.sorted(OrderUtil.buildComparator(ConfigCategoryGui.this.settings().elementOrder(), type, f -> EntryInfo.fromField(instance, f).name(), Field::getGenericType, f -> EntryInfo.fromField(instance, f).order()))
+					.sorted(OrderUtil.buildComparator(ConfigCategoryGui.this.settings().elementOrder(), type, f -> ConfigElementMetadata.fromField(instance, f).name(), Field::getGenericType, f -> ConfigElementMetadata.fromField(instance, f).order()))
 					.forEach(field -> {
 						this.listEntries.add(new ConfigCategoryGuiEntry(this, instance, field));
 					});

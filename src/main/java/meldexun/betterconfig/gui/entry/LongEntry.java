@@ -4,12 +4,12 @@ import java.lang.reflect.Type;
 
 import org.apache.commons.lang3.reflect.TypeUtils;
 
-import meldexun.betterconfig.gui.EntryInfo;
+import meldexun.betterconfig.ConfigElementMetadata;
 
 public class LongEntry extends StringEntry {
 
-	public LongEntry(EntryInfo info, Type type, Object beforeValue) {
-		super(info, type, beforeValue);
+	public LongEntry(ConfigElementMetadata metadata, Type type, Object beforeValue) {
+		super(metadata, type, beforeValue);
 		if (!TypeUtils.isAssignable(this.type, byte.class)
 				&& !TypeUtils.isAssignable(this.type, short.class)
 				&& !TypeUtils.isAssignable(this.type, int.class)
@@ -17,10 +17,10 @@ public class LongEntry extends StringEntry {
 				&& !TypeUtils.isAssignable(this.type, char.class)) {
 			throw new IllegalArgumentException();
 		}
-		if (this.info.hasLongRange()) {
+		if (this.metadata.hasLongRange()) {
 			this.validator = this.validator.and(s -> {
 				long l = Long.parseLong(s);
-				return l >= this.info.minLong() && l <= this.info.maxLong();
+				return l >= this.metadata.minLong() && l <= this.metadata.maxLong();
 			});
 		}
 	}

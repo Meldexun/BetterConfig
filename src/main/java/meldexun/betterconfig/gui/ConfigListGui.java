@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import meldexun.betterconfig.ConfigElementMetadata;
 import meldexun.betterconfig.TypeUtil;
 import meldexun.betterconfig.api.BetterConfig;
 import net.minecraft.client.Minecraft;
@@ -19,16 +20,16 @@ public class ConfigListGui extends GuiEditArray implements TitledGui, ConfigGui 
 
 	private final Supplier<String> titleSupplier;
 	private final BetterConfig settings;
-	private final EntryInfo info;
+	private final ConfigElementMetadata metadata;
 	private final Type type;
 	private final Object defaultValue;
 	private final Object beforeValue;
 
-	public <T extends GuiScreen & ConfigGui> ConfigListGui(T parentScreen, Supplier<String> titleSupplier, EntryInfo info, Type type, Object defaultValue, Object beforeValue) {
-		super(parentScreen, new DummyConfigElement(info, type, defaultValue), 0, new Object[0], true);
+	public <T extends GuiScreen & ConfigGui> ConfigListGui(T parentScreen, Supplier<String> titleSupplier, ConfigElementMetadata metadata, Type type, Object defaultValue, Object beforeValue) {
+		super(parentScreen, new DummyConfigElement(metadata, type, defaultValue), 0, new Object[0], true);
 		this.titleSupplier = titleSupplier;
 		this.settings = parentScreen.settings();
-		this.info = info;
+		this.metadata = metadata;
 		this.type = type;
 		this.defaultValue = defaultValue;
 		this.beforeValue = beforeValue;
@@ -81,8 +82,8 @@ public class ConfigListGui extends GuiEditArray implements TitledGui, ConfigGui 
 		return this.titleLine2;
 	}
 
-	public EntryInfo info() {
-		return this.info;
+	public ConfigElementMetadata info() {
+		return this.metadata;
 	}
 
 	public Object getValue() {
@@ -121,7 +122,7 @@ public class ConfigListGui extends GuiEditArray implements TitledGui, ConfigGui 
 			} else {
 				throw new IllegalArgumentException();
 			}
-			if (ConfigListGui.this.info.modifiable()) {
+			if (ConfigListGui.this.metadata.modifiable()) {
 				this.listEntries.add(new BaseEntry(ConfigListGui.this, this, this.configElement));
 			}
 
@@ -172,7 +173,7 @@ public class ConfigListGui extends GuiEditArray implements TitledGui, ConfigGui 
 
 		@SuppressWarnings("unchecked")
 		public Object getValue() {
-			int size = this.listEntries.size() - (ConfigListGui.this.info.modifiable() ? 1 : 0);
+			int size = this.listEntries.size() - (ConfigListGui.this.metadata.modifiable() ? 1 : 0);
 			Object value;
 			if (TypeUtil.isArray(ConfigListGui.this.type)) {
 				value = Array.newInstance(TypeUtil.getRawType(TypeUtil.getComponentType(ConfigListGui.this.type)), size);

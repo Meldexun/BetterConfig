@@ -4,20 +4,20 @@ import java.lang.reflect.Type;
 
 import org.apache.commons.lang3.reflect.TypeUtils;
 
-import meldexun.betterconfig.gui.EntryInfo;
+import meldexun.betterconfig.ConfigElementMetadata;
 
 public class DoubleEntry extends StringEntry {
 
-	public DoubleEntry(EntryInfo info, Type type, Object beforeValue) {
-		super(info, type, beforeValue);
+	public DoubleEntry(ConfigElementMetadata metadata, Type type, Object beforeValue) {
+		super(metadata, type, beforeValue);
 		if (!TypeUtils.isAssignable(this.type, float.class)
 				&& !TypeUtils.isAssignable(this.type, double.class)) {
 			throw new IllegalArgumentException();
 		}
-		if (this.info.hasDoubleRange()) {
+		if (this.metadata.hasDoubleRange()) {
 			this.validator = this.validator.and(s -> {
 				double d = Double.parseDouble(s);
-				return d >= this.info.minDouble() && d <= this.info.maxDouble();
+				return d >= this.metadata.minDouble() && d <= this.metadata.maxDouble();
 			});
 		}
 	}

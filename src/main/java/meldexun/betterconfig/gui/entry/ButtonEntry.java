@@ -2,7 +2,7 @@ package meldexun.betterconfig.gui.entry;
 
 import java.lang.reflect.Type;
 
-import meldexun.betterconfig.gui.EntryInfo;
+import meldexun.betterconfig.ConfigElementMetadata;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraftforge.fml.client.config.GuiButtonExt;
 
@@ -10,8 +10,8 @@ public abstract class ButtonEntry<T extends GuiButton> extends AbstractEntry {
 
 	protected final T valueButton;
 
-	public ButtonEntry(EntryInfo info, Type type, Object beforeValue) {
-		super(info, type, beforeValue);
+	public ButtonEntry(ConfigElementMetadata metadata, Type type, Object beforeValue) {
+		super(metadata, type, beforeValue);
 		this.valueButton = this.createButton();
 	}
 

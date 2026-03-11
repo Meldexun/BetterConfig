@@ -7,6 +7,7 @@ import javax.annotation.Nullable;
 
 import meldexun.betterconfig.AnnotationUtil;
 import meldexun.betterconfig.ConfigUtil;
+import meldexun.betterconfig.ConfigElementMetadata;
 import meldexun.betterconfig.api.BetterConfig;
 import meldexun.betterconfig.gui.entry.AbstractEntry;
 import meldexun.betterconfig.gui.entry.CategoryEntry;
@@ -20,22 +21,22 @@ public class ConfigCategoryGuiEntry extends ListEntryBase implements IGuiListEnt
 	@Nullable
 	protected final Object instance;
 	protected final Field field;
-	protected final EntryInfo info;
+	protected final ConfigElementMetadata metadata;
 	protected final Object beforeValue;
 	protected final AbstractEntry entry;
 
 	@SuppressWarnings("unchecked")
 	public <T extends GuiScreen & ConfigGui> ConfigCategoryGuiEntry(ConfigCategoryGui.Entries owningEntryList, @Nullable Object instance, Field field) {
-		super(owningEntryList.owningScreen, owningEntryList, new DummyConfigElement(EntryInfo.fromField(instance, field), field.getGenericType()));
+		super(owningEntryList.owningScreen, owningEntryList, new DummyConfigElement(ConfigElementMetadata.fromField(instance, field), field.getGenericType()));
 		this.instance = instance;
 		this.field = field;
-		this.info = EntryInfo.fromField(this.instance, this.field);
+		this.metadata = ConfigElementMetadata.fromField(this.instance, this.field);
 		try {
 			this.beforeValue = Objects.requireNonNull(this.field.get(this.instance));
 		} catch (IllegalArgumentException | IllegalAccessException e) {
 			throw new UnsupportedOperationException(e);
 		}
-		this.entry = AbstractEntry.create((T) this.owningScreen, this.info::guiName, this.info, this.field.getGenericType(), this.info.defaultValue(), this.beforeValue);
+		this.entry = AbstractEntry.create((T) this.owningScreen, this.metadata::guiName, this.metadata, this.field.getGenericType(), this.metadata.defaultValue(), this.beforeValue);
 		if (this.entry instanceof CategoryEntry) {
 			this.drawLabel = false;
 			((CategoryEntry) this.entry).getButton().displayString = this.getName();
@@ -45,12 +46,12 @@ public class ConfigCategoryGuiEntry extends ListEntryBase implements IGuiListEnt
 
 	@SuppressWarnings("unchecked")
 	public <T extends GuiScreen & ConfigGui> ConfigCategoryGuiEntry(ConfigCategoryGui.Entries owningEntryList, Class<?> type) {
-		super(owningEntryList.owningScreen, owningEntryList, new DummyConfigElement(EntryInfo.create(type), type));
+		super(owningEntryList.owningScreen, owningEntryList, new DummyConfigElement(ConfigElementMetadata.create(type), type));
 		this.instance = null;
 		this.field = null;
-		this.info = EntryInfo.create(type);
+		this.metadata = ConfigElementMetadata.create(type);
 		this.beforeValue = null;
-		this.entry = new CategoryEntry((T) this.owningScreen, AnnotationUtil.getOrThrow(type, BetterConfig.class), this.info::guiName, this.info, type, null);
+		this.entry = new CategoryEntry((T) this.owningScreen, AnnotationUtil.getOrThrow(type, BetterConfig.class), this.metadata::guiName, this.metadata, type, null);
 		this.drawLabel = false;
 		((CategoryEntry) this.entry).getButton().displayString = this.getName();
 		this.tooltipHoverChecker = new HoverChecker(((CategoryEntry) this.entry).getButton(), 800);
@@ -147,7 +148,7 @@ public class ConfigCategoryGuiEntry extends ListEntryBase implements IGuiListEnt
 
 	@Override
 	public String getName() {
-		return this.info.guiName();
+		return this.metadata.guiName();
 	}
 
 	@Override

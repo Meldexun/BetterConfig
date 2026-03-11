@@ -4,14 +4,14 @@ import java.lang.reflect.Type;
 
 import org.apache.commons.lang3.ArrayUtils;
 
+import meldexun.betterconfig.ConfigElementMetadata;
 import meldexun.betterconfig.TypeUtil;
-import meldexun.betterconfig.gui.EntryInfo;
 import net.minecraftforge.fml.client.config.GuiButtonExt;
 
 public class EnumEntry extends ButtonEntry<GuiButtonExt> {
 
-	public EnumEntry(EntryInfo info, Type type, Object beforeValue) {
-		super(info, type, beforeValue);
+	public EnumEntry(ConfigElementMetadata metadata, Type type, Object beforeValue) {
+		super(metadata, type, beforeValue);
 	}
 
 	@Override

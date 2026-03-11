@@ -20,7 +20,6 @@ import org.apache.commons.lang3.reflect.TypeUtils;
 
 import meldexun.betterconfig.api.BetterConfig;
 import meldexun.betterconfig.api.BetterConfig.ConfigComparator;
-import meldexun.betterconfig.gui.EntryInfo;
 import net.minecraftforge.common.config.Config;
 
 class ConfigCategory extends ConfigElement {
@@ -58,7 +57,7 @@ class ConfigCategory extends ConfigElement {
 		list.addAll(this.subcategories.entrySet());
 		list.addAll(this.elements.entrySet());
 		if (ConfigUtil.isNonMapCategory(this.type().getOrDefault())) {
-			list.sort(OrderUtil.buildComparator(order, this.type().getOrDefault(), Map.Entry::getKey, e -> e.getValue().type().getOrDefault(), e -> e.getValue().info() != null ? e.getValue().info().order() : 0));
+			list.sort(OrderUtil.buildComparator(order, this.type().getOrDefault(), Map.Entry::getKey, e -> e.getValue().type().getOrDefault(), e -> e.getValue().metadata() != null ? e.getValue().metadata().order() : 0));
 		}
 		return list;
 	}
@@ -158,17 +157,17 @@ class ConfigCategory extends ConfigElement {
 
 	static void writeEntry(ConfigWriter writer, BetterConfig settings, String name, ConfigElement element) throws IOException {
 		// write comment
-		EntryInfo info = element.info();
-		if (info != null) {
+		ConfigElementMetadata metadata = element.metadata();
+		if (metadata != null) {
 			if (element instanceof ConfigCategory) {
-				if (info.hasComment()) {
+				if (metadata.hasComment()) {
 					if (settings.bigCategoryComments()) {
 						writer.writeLine(CATEGORY_COMMENT_BORDER);
 						writer.writeCommentLine(name);
 						writer.writeLine(CATEGORY_COMMENT_SEPARATOR);
 					}
 
-					for (String commentLine : info.comment().split("\r?\n")) {
+					for (String commentLine : metadata.comment().split("\r?\n")) {
 						writer.writeCommentLine(commentLine);
 					}
 
@@ -178,28 +177,28 @@ class ConfigCategory extends ConfigElement {
 					}
 				}
 			} else {
-				if (info.hasComment()) {
-					for (String commentLine : info.comment().split("\r?\n")) {
+				if (metadata.hasComment()) {
+					for (String commentLine : metadata.comment().split("\r?\n")) {
 						writer.writeCommentLine(commentLine);
 					}
 				}
 
-				boolean writeRange = settings.addRangesToComments() && (info.hasLongRange() || info.hasDoubleRange());
-				boolean writeDefault = settings.addDefaultsToComments() && info.hasDefaultValue();
+				boolean writeRange = settings.addRangesToComments() && (metadata.hasLongRange() || metadata.hasDoubleRange());
+				boolean writeDefault = settings.addDefaultsToComments() && metadata.hasDefaultValue();
 				if (writeRange || writeDefault) {
 					writer.startComment();
 					if (writeRange) {
 						writer.write("Min: ");
-						writer.write(info.hasLongRange() ? Long.toString(info.minLong()) : Double.toString(info.minDouble()));
+						writer.write(metadata.hasLongRange() ? Long.toString(metadata.minLong()) : Double.toString(metadata.minDouble()));
 						writer.write(" Max: ");
-						writer.write(info.hasLongRange() ? Long.toString(info.maxLong()) : Double.toString(info.maxDouble()));
+						writer.write(metadata.hasLongRange() ? Long.toString(metadata.maxLong()) : Double.toString(metadata.maxDouble()));
 					}
 					if (writeDefault) {
 						if (writeRange) {
 							writer.write(' ');
 						}
 						writer.write("Default: ");
-						writer.write(TypeUtil.toString(element.type().get(), info.defaultValue()));
+						writer.write(TypeUtil.toString(element.type().get(), metadata.defaultValue()));
 					}
 					writer.newLine();
 				}
@@ -276,8 +275,8 @@ class ConfigCategory extends ConfigElement {
 	}
 
 	@Override
-	void loadInfo(BetterConfig settings, Type type, EntryInfo info, @Nullable Object instance) {
-		super.loadInfo(settings, type, info, instance);
+	void loadAnnotations(BetterConfig settings, Type type, ConfigElementMetadata metadata, @Nullable Object instance) {
+		super.loadAnnotations(settings, type, metadata, instance);
 
 		if (!TypeUtil.isMap(type)) {
 			for (Field field : ConfigUtil.getConfigFields(type, instance == null)) {
@@ -289,15 +288,15 @@ class ConfigCategory extends ConfigElement {
 					element = this.elements.compute(name, (k, v) -> v != null && v.isConfigTypeEqual(field.getGenericType()) ? v : ConfigElement.create(field.getGenericType()));
 				}
 				try {
-					element.loadInfo(settings, field.getGenericType(), EntryInfo.fromField(instance, field), field.get(instance));
+					element.loadAnnotations(settings, field.getGenericType(), ConfigElementMetadata.fromField(instance, field), field.get(instance));
 				} catch (IllegalArgumentException | IllegalAccessException e) {
 					throw new UnsupportedOperationException(e);
 				}
 			}
 
 			if (settings.removeDeprecatedEntries()) {
-				this.subcategories.values().removeIf(e -> e.info() == null);
-				this.elements.values().removeIf(e -> e.info() == null);
+				this.subcategories.values().removeIf(e -> e.metadata() == null);
+				this.elements.values().removeIf(e -> e.metadata() == null);
 			}
 		}
 	}

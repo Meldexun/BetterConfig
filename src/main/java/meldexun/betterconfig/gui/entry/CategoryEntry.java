@@ -3,11 +3,11 @@ package meldexun.betterconfig.gui.entry;
 import java.lang.reflect.Type;
 import java.util.function.Supplier;
 
+import meldexun.betterconfig.ConfigElementMetadata;
 import meldexun.betterconfig.TypeUtil;
 import meldexun.betterconfig.api.BetterConfig;
 import meldexun.betterconfig.gui.ConfigCategoryGui;
 import meldexun.betterconfig.gui.ConfigGui;
-import meldexun.betterconfig.gui.EntryInfo;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraftforge.fml.client.config.GuiButtonExt;
 
@@ -16,12 +16,12 @@ public class CategoryEntry extends ButtonEntry<GuiButtonExt> {
 	protected final ConfigCategoryGui childScreen;
 	protected final Object instance;
 
-	public <T extends GuiScreen & ConfigGui> CategoryEntry(T owningScreen, Supplier<String> childScreenTitle, EntryInfo info, Type type, Object beforeValue) {
-		this(owningScreen, owningScreen.settings(), childScreenTitle, info, type, beforeValue);
+	public <T extends GuiScreen & ConfigGui> CategoryEntry(T owningScreen, Supplier<String> childScreenTitle, ConfigElementMetadata metadata, Type type, Object beforeValue) {
+		this(owningScreen, owningScreen.settings(), childScreenTitle, metadata, type, beforeValue);
 	}
 
-	public <T extends GuiScreen & ConfigGui> CategoryEntry(T owningScreen, BetterConfig settings, Supplier<String> childScreenTitle, EntryInfo info, Type type, Object beforeValue) {
-		super(info, type, TypeUtil.copy(type, beforeValue));
+	public <T extends GuiScreen & ConfigGui> CategoryEntry(T owningScreen, BetterConfig settings, Supplier<String> childScreenTitle, ConfigElementMetadata metadata, Type type, Object beforeValue) {
+		super(metadata, type, TypeUtil.copy(type, beforeValue));
 		this.instance = beforeValue;
 
 		this.childScreen = new ConfigCategoryGui(owningScreen, settings, childScreenTitle, this.type, this.instance) {
@@ -83,7 +83,7 @@ public class CategoryEntry extends ButtonEntry<GuiButtonExt> {
 
 	@Override
 	public boolean saveChanges() {
-		return this.childScreen.entryList.saveConfigElements() || this.info.requiresMcRestart();
+		return this.childScreen.entryList.saveConfigElements() || this.metadata.requiresMcRestart();
 	}
 
 }

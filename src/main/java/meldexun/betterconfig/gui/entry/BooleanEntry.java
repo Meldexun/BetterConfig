@@ -2,14 +2,14 @@ package meldexun.betterconfig.gui.entry;
 
 import java.lang.reflect.Type;
 
-import meldexun.betterconfig.gui.EntryInfo;
+import meldexun.betterconfig.ConfigElementMetadata;
 import net.minecraftforge.fml.client.config.GuiButtonExt;
 import net.minecraftforge.fml.client.config.GuiUtils;
 
 public class BooleanEntry extends ButtonEntry<GuiButtonExt> {
 
-	public BooleanEntry(EntryInfo info, Type type, Object beforeValue) {
-		super(info, type, beforeValue);
+	public BooleanEntry(ConfigElementMetadata metadata, Type type, Object beforeValue) {
+		super(metadata, type, beforeValue);
 	}
 
 	@Override
