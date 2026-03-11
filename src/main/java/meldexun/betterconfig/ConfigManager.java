@@ -26,7 +26,15 @@ public class ConfigManager {
 	private static final Map<Path, Config> CONFIGS = new HashMap<>();
 	private static final SetMultimap<Path, String> LOADED_CATEGORIES = HashMultimap.create();
 
-	public static synchronized void register(Class<?> configClass) {
+	public static void register(Class<?> configClass) {
+		register(configClass, false);
+	}
+
+	public static void registerAndLoad(Class<?> configClass) {
+		register(configClass, true);
+	}
+
+	private static synchronized void register(Class<?> configClass, boolean load) {
 		BetterConfig configAnnotation = AnnotationUtil.getOrThrow(configClass, BetterConfig.class);
 		String modid = configAnnotation.modid();
 		if (StringUtils.isBlank(modid)) {
@@ -35,6 +43,28 @@ public class ConfigManager {
 		String configName = !configAnnotation.name().isEmpty() ? configAnnotation.name() : modid;
 		Path file = CONFIG_DIRECTORY.resolve(configName + ".cfg");
 		MODID_2_FILE_2_CONFIG_CLASSES.computeIfAbsent(modid, k -> HashMultimap.create()).put(file, configClass);
+		if (load) {
+			try {
+				Config config = CONFIGS.computeIfAbsent(file, k -> {
+					try {
+						Config v = new Config();
+						v.load(k);
+						return v;
+					} catch (IOException e) {
+						throw new UncheckedIOException(e);
+					}
+				});
+
+				String categoryName = configAnnotation.category();
+				ConfigCategory category = config.getOrCreateCategory(categoryName);
+				if (LOADED_CATEGORIES.put(file, categoryName)) {
+					category.loadAnnotations(configAnnotation, configClass, ConfigElementMetadata.create(configClass), null);
+					category.loadFromConfig(configAnnotation, configClass, null);
+				}
+			} catch (Exception e) {
+				throw new LoaderException(e);
+			}
+		}
 	}
 
 	public static synchronized void sync(String modid) {
