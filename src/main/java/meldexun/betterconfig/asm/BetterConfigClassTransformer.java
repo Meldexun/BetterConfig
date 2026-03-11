@@ -8,7 +8,7 @@ import org.objectweb.asm.tree.VarInsnNode;
 import meldexun.asmutil2.ASMUtil;
 import meldexun.asmutil2.HashMapClassNodeClassTransformer;
 import meldexun.asmutil2.IClassTransformerRegistry;
-import meldexun.betterconfig.ConfigurationManager;
+import meldexun.betterconfig.ConfigManager;
 import meldexun.betterconfig.api.BetterConfig;
 import net.minecraft.launchwrapper.IClassTransformer;
 import net.minecraftforge.fml.common.LoaderException;
@@ -33,7 +33,7 @@ public class BetterConfigClassTransformer extends HashMapClassNodeClassTransform
 		public static void loadBetterConfigClasses(ASMDataTable asmDataTable) {
 			for (ASMData target : asmDataTable.getAll(BetterConfig.class.getName())) {
 				try {
-					ConfigurationManager.register(Class.forName(target.getClassName().replace('/', '.')));
+					ConfigManager.register(Class.forName(target.getClassName().replace('/', '.')));
 				} catch (ClassNotFoundException e) {
 					throw new LoaderException(e);
 				}

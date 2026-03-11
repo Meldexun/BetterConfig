@@ -19,7 +19,7 @@ import meldexun.betterconfig.api.BetterConfig;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraftforge.fml.common.LoaderException;
 
-public class ConfigurationManager {
+public class ConfigManager {
 
 	private static final Path CONFIG_DIRECTORY = (Launch.minecraftHome != null ? Launch.minecraftHome : new File(".")).toPath().resolve("config");
 	private static final Map<String, SetMultimap<Path, Class<?>>> MODID_2_FILE_2_CONFIG_CLASSES = new HashMap<>();

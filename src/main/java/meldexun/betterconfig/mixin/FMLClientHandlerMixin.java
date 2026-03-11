@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import com.google.common.collect.BiMap;
 import com.llamalad7.mixinextras.sugar.Local;
 
-import meldexun.betterconfig.ConfigurationManager;
+import meldexun.betterconfig.ConfigManager;
 import meldexun.betterconfig.gui.ConfigCategoryGui;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
@@ -28,7 +28,7 @@ public abstract class FMLClientHandlerMixin implements IModGuiFactory {
 
 	@Inject(method = "finishMinecraftLoading", at = @At(value = "INVOKE", target = "isNullOrEmpty", shift = Shift.BY, by = 2))
 	private void finishMinecraftLoading(CallbackInfo info, @Local ModContainer modContainer) {
-		if (ConfigurationManager.has(modContainer.getModId())) {
+		if (ConfigManager.has(modContainer.getModId())) {
 			guiFactories.put(modContainer, new IModGuiFactory() {
 				@Override
 				public void initialize(Minecraft minecraftInstance) {

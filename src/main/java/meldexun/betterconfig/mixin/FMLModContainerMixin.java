@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.injection.At.Shift;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import meldexun.betterconfig.ConfigurationManager;
+import meldexun.betterconfig.ConfigManager;
 import net.minecraftforge.fml.common.FMLModContainer;
 import net.minecraftforge.fml.common.event.FMLConstructionEvent;
 
@@ -16,7 +16,7 @@ public abstract class FMLModContainerMixin {
 
 	@Inject(method = "constructMod", at = @At(value = "INVOKE", target = "Lnet/minecraftforge/common/config/ConfigManager;sync(Ljava/lang/String;Lnet/minecraftforge/common/config/Config$Type;)V", shift = Shift.AFTER))
 	public void constructMod(FMLConstructionEvent event, CallbackInfo info) {
-		ConfigurationManager.sync(this.getModId());
+		ConfigManager.sync(this.getModId());
 	}
 
 	@Shadow

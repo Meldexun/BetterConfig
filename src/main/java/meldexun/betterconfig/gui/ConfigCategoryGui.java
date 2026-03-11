@@ -10,7 +10,7 @@ import javax.annotation.Nullable;
 
 import meldexun.betterconfig.AnnotationUtil;
 import meldexun.betterconfig.ConfigUtil;
-import meldexun.betterconfig.ConfigurationManager;
+import meldexun.betterconfig.ConfigManager;
 import meldexun.betterconfig.ConfigElementMetadata;
 import meldexun.betterconfig.OrderUtil;
 import meldexun.betterconfig.api.BetterConfig;
@@ -27,7 +27,7 @@ public class ConfigCategoryGui extends GuiConfig implements TitledGui, ConfigGui
 	public ConfigCategoryGui(GuiScreen parentScreen, String title, String modID) {
 		super(parentScreen, Collections.emptyList(), modID, null, false, false, null, null);
 		this.titleSupplier = () -> title;
-		Class<?>[] configClasses = ConfigurationManager.get(modID);
+		Class<?>[] configClasses = ConfigManager.get(modID);
 		if (configClasses.length == 1) {
 			this.settings = AnnotationUtil.getOrThrow(configClasses[0], BetterConfig.class);
 			this.entryList = new Entries(configClasses[0], null);
