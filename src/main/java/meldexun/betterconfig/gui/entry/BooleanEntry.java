@@ -10,6 +10,7 @@ public class BooleanEntry extends ButtonEntry<GuiButtonExt> {
 
 	public BooleanEntry(ConfigElementMetadata metadata, Type type, Object beforeValue) {
 		super(metadata, type, beforeValue);
+		this.setValue(beforeValue);
 	}
 
 	@Override
