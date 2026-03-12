@@ -299,7 +299,17 @@ class ConfigCategory extends ConfigElement {
 				if (ConfigUtil.isCategory(field.getGenericType())) {
 					element = this.subcategories.computeIfAbsent(name, k -> new ConfigCategory(DefaultSupplier.of(field.getGenericType())));
 				} else {
-					element = this.elements.compute(name, (k, v) -> v != null && v.isConfigTypeEqual(field.getGenericType()) ? v : ConfigElement.create(field.getGenericType()));
+					element = this.elements.compute(name, (k, v) -> {
+						if (v == null || !v.isConfigTypeEqual(field.getGenericType())) {
+							v = ConfigElement.create(field.getGenericType());
+							try {
+								v.saveToConfig(settings, field.getGenericType(), field.get(instance));
+							} catch (IllegalArgumentException | IllegalAccessException e) {
+								throw new UnsupportedOperationException(e);
+							}
+						}
+						return v;
+					});
 				}
 				try {
 					element.loadAnnotations(settings, field.getGenericType(), ConfigElementMetadata.fromField(instance, field), field.get(instance));
