@@ -9,8 +9,10 @@ import meldexun.asmutil2.ASMUtil;
 import meldexun.asmutil2.HashMapClassNodeClassTransformer;
 import meldexun.asmutil2.IClassTransformerRegistry;
 import meldexun.betterconfig.ConfigManager;
+import meldexun.betterconfig.TypeAdapters;
 import meldexun.betterconfig.api.BetterConfig;
 import net.minecraft.launchwrapper.IClassTransformer;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.common.LoaderException;
 import net.minecraftforge.fml.common.discovery.ASMDataTable;
 import net.minecraftforge.fml.common.discovery.ASMDataTable.ASMData;
@@ -31,6 +33,8 @@ public class BetterConfigClassTransformer extends HashMapClassNodeClassTransform
 	public static class Hook {
 
 		public static void loadBetterConfigClasses(ASMDataTable asmDataTable) {
+			TypeAdapters.register(ResourceLocation::toString, ResourceLocation::new, new ResourceLocation("unkown"), ResourceLocation.class);
+
 			for (ASMData target : asmDataTable.getAll(BetterConfig.class.getName())) {
 				try {
 					ConfigManager.register(Class.forName(target.getClassName().replace('/', '.')));

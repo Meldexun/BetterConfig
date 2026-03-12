@@ -5,8 +5,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
-import net.minecraft.util.ResourceLocation;
-
 public class TypeAdapters {
 
 	private static final Map<Type, TypeAdapter<?>> TYPE_ADAPTERS = new ConcurrentHashMap<>();
@@ -21,8 +19,6 @@ public class TypeAdapters {
 		register(Object::toString, Double::valueOf, 0.0D, double.class, Double.class);
 		register(Integer::toString, s -> (char) Integer.parseInt(s), (char) 0, char.class, Character.class);
 		register(Function.identity(), Function.identity(), "", String.class);
-		// TODO delay registration to avoid early class loading
-		register(ResourceLocation::toString, ResourceLocation::new, new ResourceLocation("unkown"), ResourceLocation.class);
 	}
 
 	@SafeVarargs
