@@ -2,7 +2,7 @@
   {
     "modid": "betterconfig",
     "name": "BetterConfig",
-    "version": "1.0.0",
+    "version": "${version}",
     "mcversion": "1.12.2",
     "authorList": ["Meldexun"]
   }

@@ -60,6 +60,14 @@ mixin {
     config "mixins.${mod_id}.json"
 }
 
+processResources {
+    inputs.property('version', mod_stage != "" ? "${mod_version}-${mod_stage}" : "${mod_version}")
+
+    filesMatching('mcmod.info') {
+        expand version: inputs.properties.get('version')
+    }
+}
+
 java {
     withSourcesJar()
 }
