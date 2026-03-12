@@ -54,6 +54,16 @@ class ConfigList extends ConfigElement {
 	}
 
 	@Override
+	void loadAnnotations(BetterConfig settings, Type type, ConfigElementMetadata metadata, Object instance) {
+		super.loadAnnotations(settings, type, metadata, instance);
+
+		Type elementType = TypeUtil.getComponentOrElementType(type);
+		this.list.forEach(element -> {
+			element.loadAnnotations(settings, elementType, metadata, TypeUtil.newInstance(elementType));
+		});
+	}
+
+	@Override
 	void saveToConfig(BetterConfig settings, Type type, @Nullable Object instance) {
 		Objects.requireNonNull(type);
 		Objects.requireNonNull(instance);

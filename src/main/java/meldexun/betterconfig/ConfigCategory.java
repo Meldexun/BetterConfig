@@ -278,7 +278,21 @@ class ConfigCategory extends ConfigElement {
 	void loadAnnotations(BetterConfig settings, Type type, ConfigElementMetadata metadata, @Nullable Object instance) {
 		super.loadAnnotations(settings, type, metadata, instance);
 
-		if (!TypeUtil.isMap(type)) {
+		if (TypeUtil.isMap(type)) {
+			Type valueType = TypeUtil.getValueType(type);
+
+			if (ConfigUtil.isCategory(valueType)) {
+				this.subcategories.forEach((name, subcategory) -> {
+					subcategory.loadAnnotations(settings, valueType, metadata, TypeUtil.newInstance(valueType));
+				});
+			} else {
+				this.elements.forEach((name, element) -> {
+					if (element.isConfigTypeEqual(valueType)) {
+						element.loadAnnotations(settings, valueType, metadata, TypeUtil.newInstance(valueType));
+					}
+				});
+			}
+		} else {
 			for (Field field : ConfigUtil.getConfigFields(type, instance == null)) {
 				String name = getName(settings, type, field);
 				ConfigElement element;
