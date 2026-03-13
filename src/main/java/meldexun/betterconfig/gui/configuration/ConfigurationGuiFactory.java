@@ -46,7 +46,7 @@ public class ConfigurationGuiFactory implements IModGuiFactory {
 				})
 				.collect(Collectors.toList());
 
-		fileCategories = unwrapSingleCategory(fileCategories); //skip file select step if only one file
+		fileCategories = unwrapSingleCategory(fileCategories); // skip file select step if only one file
 
 		return fileCategories;
 	}
