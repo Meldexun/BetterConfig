@@ -1,6 +1,6 @@
 package meldexun.betterconfig.gui.configuration;
 
-import java.lang.reflect.Field;
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -8,27 +8,16 @@ import java.util.stream.Collectors;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraftforge.common.config.ConfigCategory;
 import net.minecraftforge.common.config.ConfigElement;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.fml.client.IModGuiFactory;
+import net.minecraftforge.fml.client.config.DummyConfigElement.DummyCategoryElement;
 import net.minecraftforge.fml.client.config.GuiConfig;
 import net.minecraftforge.fml.client.config.IConfigElement;
-import net.minecraftforge.fml.common.Loader;
-import net.minecraftforge.fml.common.ModContainer;
 
 public class ConfigurationGuiFactory implements IModGuiFactory {
 
-	private static final Field configCategory_children;
-
-	static {
-		try {
-			configCategory_children = ConfigCategory.class.getDeclaredField("children");
-			configCategory_children.setAccessible(true);
-		} catch (ReflectiveOperationException e) {
-			throw new UnsupportedOperationException(e);
-		}
-	}
+	private static final String FILE_ENDING = "\\.\\w+$";
 
 	private final String modId;
 	private final String modName;
@@ -38,54 +27,32 @@ public class ConfigurationGuiFactory implements IModGuiFactory {
 		this.modName = modName;
 	}
 
-	@SuppressWarnings("unchecked")
-	private static List<ConfigCategory> getChildCategoryList(ConfigCategory configCategory) {
-		try {
-			return (List<ConfigCategory>) configCategory_children.get(configCategory);
-		} catch (IllegalAccessException e) {
-			throw new UnsupportedOperationException(e);
-		}
-	}
-
-	private static List<IConfigElement> getConfigElements(Map<String, Configuration> map) {
-		List<ConfigCategory> fileCategories = map.entrySet()
+	private static List<IConfigElement> getConfigElements(Map<File, Configuration> map) {
+		List<IConfigElement> fileCategories = map.entrySet()
 				.stream()
 				.map(e -> {
-					String cfgFileName = e.getKey();
+					String cfgFileName = e.getKey().getName().replaceFirst(FILE_ENDING, ""); // TODO: could respect the folder structure here in the rare case of duplicated file names for the same mod in different folders
 					Configuration cfg = e.getValue();
-					List<ConfigCategory> categoriesInFile = cfg.getCategoryNames()
+					List<IConfigElement> categoriesInFile = cfg.getCategoryNames()
 							.stream()
 							.map(cfg::getCategory)
 							.filter(cat -> !cat.isChild()) // cfg stores subcategory names too, so gotta filter those
-							.filter(cat -> !cat.isEmpty() || !cat.getChildren().isEmpty()) // ignore empty categories
+							.map(ConfigElement::new)
 							.collect(Collectors.toList());
 
-					while (categoriesInFile.size() == 1 && categoriesInFile.get(0).isEmpty()) {
-						categoriesInFile = getChildCategoryList(categoriesInFile.get(0)); // skip steps with only a single subcategory option in the GUI
+					while (categoriesInFile.size() == 1 && categoriesInFile.get(0).getChildElements().isEmpty()) {
+						categoriesInFile = categoriesInFile.get(0).getChildElements(); // skip steps with only a single subcategory option in the GUI
 					}
 
-					ConfigCategory newCategory = new ConfigCategory(cfgFileName); // each file gets its own category, might be multiple per modid
-					getChildCategoryList(newCategory).addAll(categoriesInFile); // move the categories of the cfg object to the new category
-					return newCategory;
+					return new DummyCategoryElement(cfgFileName, cfgFileName, categoriesInFile); // each file gets its own category, might be multiple per modid
 				})
 				.collect(Collectors.toList());
 
 		if (fileCategories.size() == 1) {
-			fileCategories = getChildCategoryList(fileCategories.get(0)); // skip the file selection if there's only one file
+			fileCategories = fileCategories.get(0).getChildElements(); // skip the file selection if there's only one file
 		}
 
-		return fileCategories
-				.stream()
-				.map(ConfigElement::new)
-				.collect(Collectors.toList());
-	}
-
-	public static String getCurrentModId() {
-		ModContainer modContainer = Loader.instance().activeModContainer();
-		if (modContainer == null) {
-			return "";
-		}
-		return modContainer.getModId();
+		return fileCategories;
 	}
 
 	@Override

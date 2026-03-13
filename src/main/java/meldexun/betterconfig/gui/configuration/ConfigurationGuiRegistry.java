@@ -1,23 +1,24 @@
 package meldexun.betterconfig.gui.configuration;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
 import meldexun.betterconfig.asm.BetterConfigPlugin;
 import net.minecraftforge.common.config.ConfigManager;
 import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.fml.common.Loader;
+import net.minecraftforge.fml.common.ModContainer;
 
 public class ConfigurationGuiRegistry {
 
-	private static final String FILE_ENDING = "\\.\\w+$";
-
-	private static final Map<String, Map<String, Configuration>> registeredConfigurations = new HashMap<>();
+	private static final Map<String, Map<File, Configuration>> registeredConfigurations = new HashMap<>();
 
 	public static void registerConfiguration(Configuration cfg) {
 		if (!BetterConfigPlugin.coreModInitiationComplete) {
 			return;
 		}
-		String modid = ConfigurationGuiFactory.getCurrentModId();
+		String modid = getCurrentModId();
 		if (modid.isEmpty()) {
 			return; // if there should ever be an edge case with no active container or no modid
 		}
@@ -25,10 +26,7 @@ public class ConfigurationGuiRegistry {
 			return;
 		}
 
-		// remove .cfg, .json etc
-		String configName = cfg.getConfigFile().getName().replaceFirst(FILE_ENDING, "");
-
-		registeredConfigurations.computeIfAbsent(modid, k -> new HashMap<>()).put(configName, cfg);
+		registeredConfigurations.computeIfAbsent(modid, k -> new HashMap<>()).put(cfg.getConfigFile().getAbsoluteFile(), cfg);
 	}
 
 	public static void save(String modid) {
@@ -37,7 +35,7 @@ public class ConfigurationGuiRegistry {
 		}
 	}
 
-	public static Map<String, Configuration> get(String modid) {
+	public static Map<File, Configuration> get(String modid) {
 		return registeredConfigurations.get(modid);
 	}
 
@@ -49,4 +47,11 @@ public class ConfigurationGuiRegistry {
 		registeredConfigurations.remove(modId);
 	}
 
+	public static String getCurrentModId() {
+		ModContainer modContainer = Loader.instance().activeModContainer();
+		if (modContainer == null) {
+			return "";
+		}
+		return modContainer.getModId();
+	}
 }
