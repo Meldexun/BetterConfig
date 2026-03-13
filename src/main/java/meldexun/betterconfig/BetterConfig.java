@@ -18,6 +18,7 @@ import org.apache.logging.log4j.Logger;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import meldexun.betterconfig.gui.configuration.ConfigurationGuiRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
@@ -59,6 +60,9 @@ public class BetterConfig {
 				NETWORK.sendToAll(new SyncConfigPacket(ConfigManager.syncedConfigs()));
 			});
 		}
+
+		// Configuration GUIs
+		ConfigurationGuiRegistry.save(event.getModID());
 	}
 
 	@SubscribeEvent(priority = EventPriority.HIGH)

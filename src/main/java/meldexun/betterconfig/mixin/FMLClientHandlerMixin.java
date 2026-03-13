@@ -14,6 +14,8 @@ import com.llamalad7.mixinextras.sugar.Local;
 
 import meldexun.betterconfig.ConfigManager;
 import meldexun.betterconfig.gui.ConfigCategoryGui;
+import meldexun.betterconfig.gui.configuration.ConfigurationGuiFactory;
+import meldexun.betterconfig.gui.configuration.ConfigurationGuiRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraftforge.fml.client.FMLClientHandler;
@@ -29,7 +31,7 @@ public abstract class FMLClientHandlerMixin implements IModGuiFactory {
 	@Inject(method = "finishMinecraftLoading", at = @At(value = "INVOKE", target = "isNullOrEmpty", shift = Shift.BY, by = 2))
 	private void finishMinecraftLoading(CallbackInfo info, @Local ModContainer modContainer) {
 		if (ConfigManager.has(modContainer.getModId())) {
-			guiFactories.put(modContainer, new IModGuiFactory() {
+			this.guiFactories.put(modContainer, new IModGuiFactory() {
 				@Override
 				public void initialize(Minecraft minecraftInstance) {
 
@@ -50,6 +52,12 @@ public abstract class FMLClientHandlerMixin implements IModGuiFactory {
 					return null;
 				}
 			});
+		} else if (ConfigurationGuiRegistry.hasGuiFor(modContainer.getModId())) {
+			if (this.guiFactories.containsKey(modContainer)) {
+				ConfigurationGuiRegistry.unregister(modContainer.getModId());
+			} else {
+				this.guiFactories.put(modContainer, new ConfigurationGuiFactory(modContainer.getModId(), modContainer.getName()));
+			}
 		}
 	}
 
