@@ -11,6 +11,7 @@ import meldexun.asmutil2.IClassTransformerRegistry;
 import meldexun.betterconfig.ConfigManager;
 import meldexun.betterconfig.TypeAdapters;
 import meldexun.betterconfig.api.BetterConfig;
+import meldexun.betterconfig.gui.configuration.ConfigurationGuiRegistry;
 import net.minecraft.launchwrapper.IClassTransformer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.common.LoaderException;
@@ -42,6 +43,8 @@ public class BetterConfigClassTransformer extends HashMapClassNodeClassTransform
 					throw new LoaderException(e);
 				}
 			}
+
+			ConfigurationGuiRegistry.enableRegistration();
 		}
 
 	}

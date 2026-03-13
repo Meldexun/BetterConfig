@@ -4,7 +4,6 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-import meldexun.betterconfig.asm.BetterConfigPlugin;
 import net.minecraftforge.common.config.ConfigManager;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.fml.common.Loader;
@@ -13,9 +12,14 @@ import net.minecraftforge.fml.common.ModContainer;
 public class ConfigurationGuiRegistry {
 
 	private static final Map<String, Map<File, Configuration>> registeredConfigurations = new HashMap<>();
+	private static boolean coreModInitiationComplete = false;
+
+	public static void enableRegistration() {
+		coreModInitiationComplete = true;
+	}
 
 	public static void registerConfiguration(Configuration cfg) {
-		if (!BetterConfigPlugin.coreModInitiationComplete) {
+		if (!coreModInitiationComplete) {
 			return;
 		}
 		ModContainer modContainer = Loader.instance().activeModContainer();

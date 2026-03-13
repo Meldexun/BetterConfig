@@ -52,7 +52,7 @@ public class ConfigurationGuiFactory implements IModGuiFactory {
 	}
 
 	private static List<IConfigElement> unwrapSingleCategory(List<IConfigElement> elements) {
-		if(elements.size() == 1) {
+		if (elements.size() == 1) {
 			return elements.get(0).getChildElements();
 		}
 		return elements;
