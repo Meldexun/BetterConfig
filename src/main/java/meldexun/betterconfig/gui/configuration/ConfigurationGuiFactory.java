@@ -99,7 +99,7 @@ public class ConfigurationGuiFactory implements IModGuiFactory {
                 .collect(Collectors.toList());
     }
 
-    public static String getCurrentModId(){
+    public static String getCurrentModId() {
         ModContainer modContainer = Loader.instance().activeModContainer();
         if(modContainer == null) {
             return "";

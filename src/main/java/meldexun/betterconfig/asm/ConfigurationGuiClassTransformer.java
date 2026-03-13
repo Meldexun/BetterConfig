@@ -18,7 +18,7 @@ public class ConfigurationGuiClassTransformer extends AbstractClassTransformer i
 	@Override
 	protected byte[] transformOrNull(String name, String transformedName, byte[] basicClass) {
 		if(basicClass == null) return null;
-		if(transformedName.equals("net.minecraftforge.common.config.ConfigManager")) return null; //forge ConfigManager.sync
+		if(transformedName.startsWith("net.minecraft")) return null; // ignore all mc and forge classes
 		try {
 			if (ClassUtil.DEFAULT.findInClassHierarchy(name.replace('.', '/'), "net/minecraftforge/common/config/Configuration"::equals) != null) {
 				// TODO: grab these classes extending Configuration differently, prob at tail of their <init>

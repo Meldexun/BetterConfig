@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
+import meldexun.betterconfig.gui.configuration.ConfigurationGuiRegistry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -59,6 +60,9 @@ public class BetterConfig {
 				NETWORK.sendToAll(new SyncConfigPacket(ConfigManager.syncedConfigs()));
 			});
 		}
+
+		// Configuration GUIs
+		ConfigurationGuiRegistry.save(event.getModID());
 	}
 
 	@SubscribeEvent(priority = EventPriority.HIGH)
