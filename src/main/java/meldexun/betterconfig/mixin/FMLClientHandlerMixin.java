@@ -10,9 +10,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.google.common.collect.BiMap;
-import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.sugar.Local;
-
 import meldexun.betterconfig.ConfigManager;
 import meldexun.betterconfig.gui.ConfigCategoryGui;
 import meldexun.betterconfig.gui.configuration.ConfigurationGuiFactory;
