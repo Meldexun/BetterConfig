@@ -48,9 +48,8 @@ class ConfigCategory extends ConfigElement {
 
 	@Override
 	boolean isDefault() {
-		boolean allSubCategoriesDefault = this.subcategories.entrySet().stream().allMatch(entry -> entry.getValue().isDefault());
-		boolean allElementsDefault = this.elements.entrySet().stream().allMatch(entry -> entry.getValue().isDefault());
-		return allSubCategoriesDefault && allElementsDefault;
+		return this.subcategories.values().stream().allMatch(ConfigElement::isDefault) &&
+				this.elements.values().stream().allMatch(ConfigElement::isDefault);
 	}
 
 	@Override
@@ -157,7 +156,7 @@ class ConfigCategory extends ConfigElement {
 		writer.incrementIndentation();
 		writer.write(this.elements(settings.elementOrder()), (writer1, entry) -> {
 			if (writeEntry(writer1, settings, entry.getKey(), entry.getValue())) {
-				writer.newLine();
+				writer1.newLine();
 				return true;
 			}
 			return false;

@@ -26,7 +26,7 @@ class ConfigValue extends ConfigElement {
 		if (metadata == null) {
 			return false;
 		}
-		return this.value.equals(TypeUtil.toString(this.type().get(), metadata.defaultValue()));
+		return this.value.equals(TypeUtil.toString(this.type().getOrDefault(), metadata.defaultValue()));
 	}
 
 	@Override
