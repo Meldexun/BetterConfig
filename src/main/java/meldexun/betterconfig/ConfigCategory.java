@@ -46,6 +46,14 @@ class ConfigCategory extends ConfigElement {
 		}
 	}
 
+	@Override
+	boolean isDefault() {
+		boolean allSubCategoriesDefault = this.subcategories.entrySet().stream().allMatch(entry -> entry.getValue().isDefault());
+		boolean allElementsDefault = this.elements.entrySet().stream().allMatch(entry -> entry.getValue().isDefault());
+		return allSubCategoriesDefault && allElementsDefault;
+	}
+
+	@Override
 	void clear() {
 		super.clear();
 		this.elements.clear();
@@ -148,17 +156,24 @@ class ConfigCategory extends ConfigElement {
 		writer.writeLine('{');
 		writer.incrementIndentation();
 		writer.write(this.elements(settings.elementOrder()), (writer1, entry) -> {
-			writeEntry(writer1, settings, entry.getKey(), entry.getValue());
-			writer1.newLine();
+			if (writeEntry(writer1, settings, entry.getKey(), entry.getValue())) {
+				writer.newLine();
+				return true;
+			}
+			return false;
 		});
 		writer.decrementIndentation();
 		writer.write('}');
 	}
 
-	static void writeEntry(ConfigWriter writer, BetterConfig settings, String name, ConfigElement element) throws IOException {
+	static boolean writeEntry(ConfigWriter writer, BetterConfig settings, String name, ConfigElement element) throws IOException {
 		// write comment
 		ConfigElementMetadata metadata = element.metadata();
 		if (metadata != null) {
+			if (metadata.optional() && element.isDefault()) {
+				return false;
+			}
+
 			if (element instanceof ConfigCategory) {
 				if (metadata.hasComment()) {
 					if (settings.bigCategoryComments()) {
@@ -227,6 +242,8 @@ class ConfigCategory extends ConfigElement {
 
 		// write value
 		element.write(writer, settings);
+
+		return true;
 	}
 
 	static String serializeType(ConfigValue value) {

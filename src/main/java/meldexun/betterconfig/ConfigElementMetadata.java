@@ -11,6 +11,7 @@ import javax.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
 
 import meldexun.betterconfig.api.BetterConfig;
+import meldexun.betterconfig.api.OptionalConfig;
 import meldexun.betterconfig.api.Order;
 import meldexun.betterconfig.api.RangeLong;
 import meldexun.betterconfig.api.Unmodifiable;
@@ -53,6 +54,8 @@ public interface ConfigElementMetadata {
 
 	boolean modifiable();
 
+	boolean optional();
+
 	default boolean hasDefaultValue() {
 		return defaultValue() != null;
 	}
@@ -78,6 +81,7 @@ public interface ConfigElementMetadata {
 		private double maxDouble = Double.MAX_VALUE;
 		private boolean slidingOption;
 		private boolean modifiable = true;
+		private boolean optional = false;
 		private Object defaultValue;
 		private boolean requiresMcRestart;
 		private boolean requiresWorldRestart;
@@ -113,6 +117,10 @@ public interface ConfigElementMetadata {
 
 		public void setModifiable(boolean modifiable) {
 			this.modifiable = modifiable;
+		}
+
+		public void setOptional(boolean optional) {
+			this.optional = optional;
 		}
 
 		public void setDefaultValue(Object defaultValue) {
@@ -204,6 +212,11 @@ public interface ConfigElementMetadata {
 				}
 
 				@Override
+				public boolean optional() {
+					return optional;
+				}
+
+				@Override
 				public Object defaultValue() {
 					return defaultValue;
 				}
@@ -246,6 +259,7 @@ public interface ConfigElementMetadata {
 			}
 			AnnotationUtil.ifPresent(field, RangeLong.class, rangeLong -> builder.setLongRange(rangeLong.min(), rangeLong.max()));
 			AnnotationUtil.ifPresent(field, Unmodifiable.class, a -> builder.setModifiable(false));
+			AnnotationUtil.ifPresent(field, OptionalConfig.class, a -> builder.setOptional(true));
 			AnnotationUtil.ifPresent(field, Order.class, order -> builder.setOrder(order.value()));
 			return builder.build();
 		});

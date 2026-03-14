@@ -23,6 +23,12 @@ class ConfigList extends ConfigElement {
 		}
 	}
 
+	@Override
+	boolean isDefault() {
+		return this.list.stream().allMatch(ConfigElement::isDefault);
+	}
+
+	@Override
 	void clear() {
 		super.clear();
 		this.list.clear();

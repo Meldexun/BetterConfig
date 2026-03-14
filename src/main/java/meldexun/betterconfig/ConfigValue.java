@@ -20,6 +20,16 @@ class ConfigValue extends ConfigElement {
 		this.value = TypeAdapters.get(this.type().getOrDefault()).defaultSerializedValue();
 	}
 
+	@Override
+	boolean isDefault() {
+		ConfigElementMetadata metadata = this.metadata();
+		if (metadata == null) {
+			return false;
+		}
+		return this.value.equals(TypeUtil.toString(this.type().get(), metadata.defaultValue()));
+	}
+
+	@Override
 	void clear() {
 		super.clear();
 		this.value = null;
