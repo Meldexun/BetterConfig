@@ -12,7 +12,7 @@ public interface TypeAdapter<T> {
 	String defaultSerializedValue();
 
 	default T defaultValue() {
-		return deserialize(defaultSerializedValue());
+		return this.deserialize(this.defaultSerializedValue());
 	}
 
 	default boolean isSerializedValue(String s) {
@@ -59,7 +59,7 @@ public interface TypeAdapter<T> {
 	}
 
 	default T copy(T value) {
-		return deserialize(serialize(value));
+		return this.deserialize(this.serialize(value));
 	}
 
 }

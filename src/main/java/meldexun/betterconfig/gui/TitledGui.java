@@ -9,7 +9,7 @@ public interface TitledGui {
 	String subtitle();
 
 	default String subscreen(String subscreen) {
-		return !StringUtils.isBlank(subtitle()) ? subtitle() + " > " + subscreen : subscreen;
+		return !StringUtils.isBlank(this.subtitle()) ? this.subtitle() + " > " + subscreen : subscreen;
 	}
 
 }

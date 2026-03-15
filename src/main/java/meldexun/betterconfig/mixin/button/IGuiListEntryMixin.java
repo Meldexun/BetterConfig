@@ -11,7 +11,7 @@ public interface IGuiListEntryMixin extends IGuiListEntryExt {
 
 	@Override
 	default boolean mousePressedAll(int slotIndex, int mouseX, int mouseY, int mouseEvent, int relativeX, int relativeY) {
-		return mouseEvent == 0 && mousePressed(slotIndex, mouseX, mouseY, mouseEvent, relativeX, relativeY);
+		return mouseEvent == 0 && this.mousePressed(slotIndex, mouseX, mouseY, mouseEvent, relativeX, relativeY);
 	}
 
 	@Shadow

@@ -22,17 +22,17 @@ public interface ConfigElementMetadata {
 	String name();
 
 	default boolean hasLangKey() {
-		return !StringUtils.isBlank(langKey());
+		return !StringUtils.isBlank(this.langKey());
 	}
 
 	String langKey();
 
 	default String guiName() {
-		return hasLangKey() && I18n.hasKey(langKey()) ? I18n.format(langKey()) : name();
+		return this.hasLangKey() && I18n.hasKey(this.langKey()) ? I18n.format(this.langKey()) : this.name();
 	}
 
 	default boolean hasComment() {
-		return !StringUtils.isBlank(comment());
+		return !StringUtils.isBlank(this.comment());
 	}
 
 	String comment();
@@ -54,7 +54,7 @@ public interface ConfigElementMetadata {
 	boolean modifiable();
 
 	default boolean hasDefaultValue() {
-		return defaultValue() != null;
+		return this.defaultValue() != null;
 	}
 
 	Object defaultValue();

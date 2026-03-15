@@ -15,7 +15,7 @@ public class ConfigButtonYOffsetMixin implements ConfigGuiEntry {
 
 	@Redirect(method = { "drawEntry(IIIIIIIZF)V", "func_192634_a(IIIIIIIZF)V" }, at = @At(value = "FIELD", target = "Lnet/minecraftforge/fml/client/config/GuiButtonExt;y:I", opcode = Opcodes.PUTFIELD), expect = 2)
 	public void setY(GuiButtonExt button, int y) {
-		button.y = y + buttonOffsetY();
+		button.y = y + this.buttonOffsetY();
 	}
 
 	@Override

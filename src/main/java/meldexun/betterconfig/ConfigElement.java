@@ -60,12 +60,12 @@ abstract class ConfigElement {
 	abstract Object loadFromConfig(BetterConfig settings, Type type, @Nullable Object instance);
 
 	DefaultSupplier<Type> type() {
-		return type;
+		return this.type;
 	}
 
 	@Nullable
 	ConfigElementMetadata metadata() {
-		return metadata;
+		return this.metadata;
 	}
 
 }

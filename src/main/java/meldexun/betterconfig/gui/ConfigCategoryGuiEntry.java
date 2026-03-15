@@ -6,8 +6,8 @@ import java.util.Objects;
 import javax.annotation.Nullable;
 
 import meldexun.betterconfig.AnnotationUtil;
-import meldexun.betterconfig.ConfigUtil;
 import meldexun.betterconfig.ConfigElementMetadata;
+import meldexun.betterconfig.ConfigUtil;
 import meldexun.betterconfig.api.BetterConfig;
 import meldexun.betterconfig.gui.entry.AbstractEntry;
 import meldexun.betterconfig.gui.entry.CategoryEntry;

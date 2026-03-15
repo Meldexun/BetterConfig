@@ -12,7 +12,7 @@ public class GuiSlotMixin implements GuiSlotExt {
 
 	@ModifyConstant(method = "drawScreen", constant = @Constant(intValue = 2, ordinal = 2))
 	public int leftOffset(int offset) {
-		return offsetLeft();
+		return this.offsetLeft();
 	}
 
 	@Override

@@ -9,9 +9,9 @@ import java.util.function.Supplier;
 import javax.annotation.Nullable;
 
 import meldexun.betterconfig.AnnotationUtil;
-import meldexun.betterconfig.ConfigUtil;
-import meldexun.betterconfig.ConfigManager;
 import meldexun.betterconfig.ConfigElementMetadata;
+import meldexun.betterconfig.ConfigManager;
+import meldexun.betterconfig.ConfigUtil;
 import meldexun.betterconfig.OrderUtil;
 import meldexun.betterconfig.api.BetterConfig;
 import net.minecraft.client.Minecraft;
