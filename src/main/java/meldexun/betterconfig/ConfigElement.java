@@ -36,6 +36,8 @@ abstract class ConfigElement {
 		return ConfigUtil.isConfigTypeEqual(this.type.getOrDefault(), type);
 	}
 
+	abstract boolean isDefault();
+
 	void clear() {
 		this.type.reset();
 		this.metadata = null;

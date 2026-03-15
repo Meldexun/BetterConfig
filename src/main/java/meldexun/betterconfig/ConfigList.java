@@ -23,6 +23,12 @@ class ConfigList extends ConfigElement {
 		}
 	}
 
+	@Override
+	boolean isDefault() {
+		return false; // TODO: need to find a good implementation for this
+	}
+
+	@Override
 	void clear() {
 		super.clear();
 		this.list.clear();
