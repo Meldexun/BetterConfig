@@ -2,8 +2,10 @@ package meldexun.betterconfig;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -65,10 +67,10 @@ class Config {
 			return null;
 		}
 	};
-	private final ConfigCategory root = new ConfigCategory(DefaultSupplier.fallback(Map.class));
+	private final Map<String, ConfigCategory> categories = new HashMap<>();
 
 	void load(Path file) throws IOException {
-		this.root.clear();
+		this.categories.clear();
 		if (Files.exists(file)) {
 			try (ConfigReader reader = new ConfigReader(Files.newBufferedReader(file))) {
 				while (reader.hasNext()) {
@@ -84,26 +86,34 @@ class Config {
 		}
 	}
 
-	void save(Path file, Function<String, BetterConfig> getCategorySettings) throws IOException {
+	void save(Path file, Function<String, Type> getType) throws IOException {
 		try (ConfigWriter writer = new ConfigWriter(Files.newBufferedWriter(file))) {
 			writer.writeCommentLine("Configuration file");
 			writer.newLine();
-			BetterConfig rootSettings = ObjectUtils.defaultIfNull(getCategorySettings.apply(""), DEFAULT_SETTINGS);
-			for (Map.Entry<String, ? extends ConfigElement> entry : this.root.elements(rootSettings.elementOrder())) {
-				BetterConfig settings = ObjectUtils.defaultIfNull(getCategorySettings.apply(entry.getKey()), DEFAULT_SETTINGS);
-				ConfigCategory.writeEntry(writer, settings, entry.getKey(), entry.getValue());
-				writer.newLine();
-				writer.newLine();
-				writer.newLine();
+			for (Map.Entry<String, ConfigCategory> entry : this.categories.entrySet()) {
+				String name = entry.getKey();
+				ConfigCategory category = entry.getValue();
+				Type type = ObjectUtils.defaultIfNull(getType.apply(name), Map.class);
+				BetterConfig settings = ObjectUtils.defaultIfNull(AnnotationUtil.get(type, BetterConfig.class), DEFAULT_SETTINGS);
+				if (name.isEmpty()) {
+					for (ConfigCategory.Entry entry1 : category.elements(settings, type, ConfigElementMetadata.create(TypeUtil.getRawType(type)), null)) {
+						ConfigCategory.writeEntry(writer, settings, entry1.name(), entry1.configElement(), entry1.type(), entry1.metadata(), entry1.instance(), !TypeUtil.isMap(type));
+						writer.newLine();
+						writer.newLine();
+						writer.newLine();
+					}
+				} else {
+					ConfigCategory.writeEntry(writer, settings, name, category, type, ConfigElementMetadata.create(TypeUtil.getRawType(type)), null, true);
+					writer.newLine();
+					writer.newLine();
+					writer.newLine();
+				}
 			}
 		}
 	}
 
 	ConfigCategory getOrCreateCategory(String categoryName) {
-		if (categoryName.isEmpty()) {
-			return this.root;
-		}
-		return this.root.subcategories.computeIfAbsent(categoryName, k -> new ConfigCategory(DefaultSupplier.fallback(Map.class)));
+		return this.categories.computeIfAbsent(categoryName, k -> new ConfigCategory());
 	}
 
 }

@@ -146,8 +146,7 @@ public class ConfigManager {
 				String categoryName = configAnnotation.category();
 				ConfigCategory category = config.getOrCreateCategory(categoryName);
 				if (LOADED_CATEGORIES.put(file, categoryName)) {
-					category.loadAnnotations(configAnnotation, configClass, ConfigElementMetadata.create(configClass), null);
-					category.loadFromConfig(configAnnotation, configClass, null);
+					category.loadFromConfig(configAnnotation, configClass, ConfigElementMetadata.create(configClass), null);
 				}
 			} catch (Exception e) {
 				throw new LoaderException(e);
@@ -175,15 +174,12 @@ public class ConfigManager {
 							String categoryName = settings.category();
 							ConfigCategory category = config.getOrCreateCategory(categoryName);
 							if (LOADED_CATEGORIES.put(file, categoryName)) {
-								category.loadAnnotations(settings, configClass, ConfigElementMetadata.create(configClass), null);
-								category.loadFromConfig(settings, configClass, null);
+								category.loadFromConfig(settings, configClass, ConfigElementMetadata.create(configClass), null);
 							}
-							category.saveToConfig(settings, configClass, null);
+							category.saveToConfig(settings, configClass, ConfigElementMetadata.create(configClass), null);
 						}
 
-						config.save(file, configClasses.stream()
-								.map(c -> AnnotationUtil.getOrThrow(c, BetterConfig.class))
-								.collect(Collectors.toMap(BetterConfig::category, Function.identity()))::get);
+						config.save(file, configClasses.stream().collect(Collectors.toMap(c -> AnnotationUtil.map(c, BetterConfig.class, BetterConfig::category), Function.identity()))::get);
 					} catch (Exception e) {
 						throw new LoaderException(e);
 					}

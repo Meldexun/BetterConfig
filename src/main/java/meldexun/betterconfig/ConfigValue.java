@@ -10,52 +10,48 @@ import meldexun.betterconfig.api.BetterConfig;
 
 class ConfigValue extends ConfigElement {
 
-	private String value;
+	private String value = "";
 
-	ConfigValue(DefaultSupplier<Type> type) {
-		super(type);
-		if (!ConfigUtil.isValue(this.type().getOrDefault())) {
-			throw new IllegalArgumentException();
-		}
-		this.value = TypeAdapters.get(this.type().getOrDefault()).defaultSerializedValue();
-	}
-
-	void clear() {
-		super.clear();
-		this.value = null;
+	@Override
+	boolean isConfigTypeEqual(Type type) {
+		return ConfigUtil.isValue(type);
 	}
 
 	@Override
 	void read(ConfigReader reader) throws IOException {
-		String value = reader.readLine();
-		if (!TypeAdapters.get(this.type().getOrDefault()).isSerializedValue(value)) {
-			throw new IllegalArgumentException();
-		}
-		this.value = value;
+		this.value = reader.readLine();
 	}
 
 	@Override
-	void write(ConfigWriter writer, BetterConfig settings) throws IOException {
-		writer.write(this.value);
-	}
-
-	@Override
-	void saveToConfig(BetterConfig settings, Type type, @Nullable Object instance) {
+	void write(ConfigWriter writer, BetterConfig settings, Type type, @Nullable ConfigElementMetadata metadata, @Nullable Object instance) throws IOException {
 		Objects.requireNonNull(type);
 		Objects.requireNonNull(instance);
 		if (!ConfigUtil.isValue(type)) {
 			throw new IllegalArgumentException();
 		}
-		this.type().set(type);
+
+		writer.write(this.value);
+	}
+
+	@Override
+	void saveToConfig(BetterConfig settings, Type type, @Nullable ConfigElementMetadata metadata, @Nullable Object instance) {
+		Objects.requireNonNull(type);
+		Objects.requireNonNull(instance);
+		if (!ConfigUtil.isValue(type)) {
+			throw new IllegalArgumentException();
+		}
+
 		this.value = TypeAdapters.get(type).serialize(instance);
 	}
 
 	@Override
-	Object loadFromConfig(BetterConfig settings, Type type, @Nullable Object instance) {
+	Object loadFromConfig(BetterConfig settings, Type type, @Nullable ConfigElementMetadata metadata, @Nullable Object instance) {
 		Objects.requireNonNull(type);
-		if (!ConfigUtil.isValue(type) || this.type().existsAndNotEqual(type)) {
-			return instance;
+		Objects.requireNonNull(instance);
+		if (!ConfigUtil.isValue(type)) {
+			throw new IllegalArgumentException();
 		}
+
 		return TypeAdapters.get(type).deserialize(this.value);
 	}
 

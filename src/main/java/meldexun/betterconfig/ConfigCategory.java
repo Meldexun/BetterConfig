@@ -4,13 +4,17 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 
@@ -19,7 +23,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.TypeUtils;
 
 import meldexun.betterconfig.api.BetterConfig;
-import meldexun.betterconfig.api.BetterConfig.ConfigComparator;
 import net.minecraftforge.common.config.Config;
 
 class ConfigCategory extends ConfigElement {
@@ -39,27 +42,98 @@ class ConfigCategory extends ConfigElement {
 	final Map<String, ConfigCategory> subcategories = new LinkedHashMap<>();
 	final Map<String, ConfigElement> elements = new LinkedHashMap<>();
 
-	ConfigCategory(DefaultSupplier<Type> type) {
-		super(type);
-		if (!ConfigUtil.isCategory(this.type().getOrDefault())) {
-			throw new IllegalArgumentException();
-		}
-	}
-
 	void clear() {
-		super.clear();
 		this.elements.clear();
 		this.subcategories.clear();
 	}
 
-	List<Map.Entry<String, ? extends ConfigElement>> elements(ConfigComparator... order) {
-		List<Map.Entry<String, ? extends ConfigElement>> list = new ArrayList<>();
-		list.addAll(this.subcategories.entrySet());
-		list.addAll(this.elements.entrySet());
-		if (ConfigUtil.isNonMapCategory(this.type().getOrDefault())) {
-			list.sort(OrderUtil.buildComparator(order, this.type().getOrDefault(), Map.Entry::getKey, e -> e.getValue().type().getOrDefault(), e -> e.getValue().metadata() != null ? e.getValue().metadata().order() : 0));
+	static class Entry {
+		private final String name;
+		private final ConfigElement configElement;
+		private final Type type;
+		@Nullable
+		private final ConfigElementMetadata metadata;
+		private final Object instance;
+
+		private Entry(String name, ConfigElement configElement, @Nullable Object owner, Field field) {
+			this.name = name;
+			this.configElement = configElement;
+			this.type = field.getGenericType();
+			this.metadata = ConfigElementMetadata.fromField(owner, field);
+			try {
+				this.instance = field.get(owner);
+			} catch (ReflectiveOperationException e) {
+				throw new UnsupportedOperationException(e);
+			}
 		}
+
+		private Entry(String name, ConfigElement configElement, Type type, Object instance) {
+			this.name = name;
+			this.configElement = configElement;
+			this.type = type;
+			this.metadata = null; // TODO compute metadata for map values?
+			this.instance = instance;
+		}
+
+		String name() {
+			return this.name;
+		}
+
+		ConfigElement configElement() {
+			return this.configElement;
+		}
+
+		Type type() {
+			return this.type;
+		}
+
+		@Nullable
+		ConfigElementMetadata metadata() {
+			return this.metadata;
+		}
+
+		@Nullable
+		Object instance() {
+			return this.instance;
+		}
+	}
+
+	List<Entry> elements(BetterConfig settings, Type type, @Nullable ConfigElementMetadata metadata, @Nullable Object instance) {
+		List<Entry> list = new ArrayList<>();
+
+		if (TypeUtil.isMap(type)) {
+			Type keyType = TypeUtil.getKeyType(type);
+			if (!TypeAdapters.hasAdapter(keyType)) {
+				throw new IllegalArgumentException();
+			}
+			TypeAdapter<Object> keyAdapter = TypeAdapters.get(keyType);
+			Type valueType = TypeUtil.getValueType(type);
+
+			if (ConfigUtil.isCategory(valueType)) {
+				this.subcategories.forEach((name, subcategory) -> {
+					list.add(new Entry(name, subcategory, valueType, ((Map<?, ?>) instance).get(keyAdapter.deserialize(name))));
+				});
+			} else {
+				this.elements.forEach((name, element) -> {
+					if (element.isConfigTypeEqual(valueType)) {
+						list.add(new Entry(name, element, valueType, ((Map<?, ?>) instance).get(keyAdapter.deserialize(name))));
+					}
+				});
+			}
+		} else {
+			Map<String, Field> fields = Arrays.stream(ConfigUtil.getConfigFields(type, instance == null)).collect(Collectors.toMap(field -> getName(settings, type, field), Function.identity()));
+			Stream.concat(this.subcategories.entrySet().stream(), this.elements.entrySet().stream())
+					.map(e -> new Entry(e.getKey(), e.getValue(), instance, fields.get(e.getKey())))
+					.forEach(list::add);
+			list.sort(OrderUtil.buildComparator(settings.elementOrder(), type, Entry::name, Entry::type, e -> e.metadata() != null ? e.metadata().order() : 0));
+		}
+
 		return list;
+	}
+
+	@Override
+	boolean isConfigTypeEqual(Type type) {
+		return ConfigUtil.isCategory(type);
 	}
 
 	@Override
@@ -74,13 +148,13 @@ class ConfigCategory extends ConfigElement {
 			Matcher matcher;
 			if ((matcher = reader.readMatching(VALUE)) != null) {
 				name = ObjectUtils.defaultIfNull(matcher.group(2), matcher.group(3));
-				element = new ConfigValue(DefaultSupplier.fallback(parseValueType(matcher.group(1))));
+				element = new ConfigValue();
 			} else if ((matcher = reader.readMatching(LIST)) != null) {
 				name = ObjectUtils.defaultIfNull(matcher.group(2), matcher.group(3));
-				element = new ConfigList(DefaultSupplier.fallback(parseListType(matcher.group(1))));
+				element = new ConfigList();
 			} else if ((matcher = reader.readMatching(CATEGORY)) != null) {
 				name = ObjectUtils.defaultIfNull(matcher.group(1), matcher.group(2));
-				element = new ConfigCategory(DefaultSupplier.fallback(Map.class));
+				element = new ConfigCategory();
 			} else {
 				throw new IllegalArgumentException(reader.peekLine());
 			}
@@ -144,77 +218,78 @@ class ConfigCategory extends ConfigElement {
 	}
 
 	@Override
-	void write(ConfigWriter writer, BetterConfig settings) throws IOException {
+	void write(ConfigWriter writer, BetterConfig settings, Type type, @Nullable ConfigElementMetadata metadata, @Nullable Object instance) throws IOException {
 		writer.writeLine('{');
 		writer.incrementIndentation();
-		writer.write(this.elements(settings.elementOrder()), (writer1, entry) -> {
-			writeEntry(writer1, settings, entry.getKey(), entry.getValue());
+		writer.write(this.elements(settings, type, metadata, instance), (writer1, entry) -> {
+			writeEntry(writer1, settings, entry.name(), entry.configElement(), entry.type(), entry.metadata(), entry.instance(), !TypeUtil.isMap(type));
 			writer1.newLine();
 		});
 		writer.decrementIndentation();
 		writer.write('}');
 	}
 
-	static void writeEntry(ConfigWriter writer, BetterConfig settings, String name, ConfigElement element) throws IOException {
+	static void writeEntry(ConfigWriter writer, BetterConfig settings, String name, ConfigElement element, Type type, @Nullable ConfigElementMetadata metadata, @Nullable Object instance, boolean writeComment) throws IOException {
 		// write comment
-		ConfigElementMetadata metadata = element.metadata();
-		if (metadata != null) {
-			if (element instanceof ConfigCategory) {
-				if (metadata.hasComment()) {
-					if (settings.bigCategoryComments()) {
-						writer.writeLine(CATEGORY_COMMENT_BORDER);
-						writer.writeCommentLine(name);
-						writer.writeLine(CATEGORY_COMMENT_SEPARATOR);
+		if (writeComment) {
+			if (metadata != null) {
+				if (element instanceof ConfigCategory) {
+					if (metadata.hasComment()) {
+						if (settings.bigCategoryComments()) {
+							writer.writeLine(CATEGORY_COMMENT_BORDER);
+							writer.writeCommentLine(name);
+							writer.writeLine(CATEGORY_COMMENT_SEPARATOR);
+						}
+
+						for (String commentLine : metadata.comment().split("\r?\n")) {
+							writer.writeCommentLine(commentLine);
+						}
+
+						if (settings.bigCategoryComments()) {
+							writer.writeLine(CATEGORY_COMMENT_BORDER);
+							writer.newLine();
+						}
+					}
+				} else {
+					if (metadata.hasComment()) {
+						for (String commentLine : metadata.comment().split("\r?\n")) {
+							writer.writeCommentLine(commentLine);
+						}
 					}
 
-					for (String commentLine : metadata.comment().split("\r?\n")) {
-						writer.writeCommentLine(commentLine);
-					}
-
-					if (settings.bigCategoryComments()) {
-						writer.writeLine(CATEGORY_COMMENT_BORDER);
+					boolean writeRange = settings.addRangesToComments() && (metadata.hasLongRange() || metadata.hasDoubleRange());
+					boolean writeDefault = settings.addDefaultsToComments() && metadata.hasDefaultValue();
+					if (writeRange || writeDefault) {
+						writer.startComment();
+						if (writeRange) {
+							writer.write("Min: ");
+							writer.write(metadata.hasLongRange() ? Long.toString(metadata.minLong()) : Double.toString(metadata.minDouble()));
+							writer.write(" Max: ");
+							writer.write(metadata.hasLongRange() ? Long.toString(metadata.maxLong()) : Double.toString(metadata.maxDouble()));
+						}
+						if (writeDefault) {
+							if (writeRange) {
+								writer.write(' ');
+							}
+							writer.write("Default: ");
+							writer.write(TypeUtil.toString(type, metadata.defaultValue()));
+						}
 						writer.newLine();
 					}
 				}
 			} else {
-				if (metadata.hasComment()) {
-					for (String commentLine : metadata.comment().split("\r?\n")) {
-						writer.writeCommentLine(commentLine);
-					}
-				}
-
-				boolean writeRange = settings.addRangesToComments() && (metadata.hasLongRange() || metadata.hasDoubleRange());
-				boolean writeDefault = settings.addDefaultsToComments() && metadata.hasDefaultValue();
-				if (writeRange || writeDefault) {
-					writer.startComment();
-					if (writeRange) {
-						writer.write("Min: ");
-						writer.write(metadata.hasLongRange() ? Long.toString(metadata.minLong()) : Double.toString(metadata.minDouble()));
-						writer.write(" Max: ");
-						writer.write(metadata.hasLongRange() ? Long.toString(metadata.maxLong()) : Double.toString(metadata.maxDouble()));
-					}
-					if (writeDefault) {
-						if (writeRange) {
-							writer.write(' ');
-						}
-						writer.write("Default: ");
-						writer.write(TypeUtil.toString(element.type().get(), metadata.defaultValue()));
-					}
-					writer.newLine();
-				}
+				writer.writeCommentLine("~DEPRECATED~");
 			}
-		} else {
-			writer.writeCommentLine("~DEPRECATED~");
 		}
 
 		// write type and name
 		if (element instanceof ConfigValue) {
-			writer.write(serializeType((ConfigValue) element));
+			writeType(writer, type);
 			writer.write(':');
 			writeName(writer, name);
 			writer.write('=');
 		} else if (element instanceof ConfigList) {
-			writer.write(serializeType((ConfigList) element));
+			writeType(writer, type);
 			writer.write(':');
 			writeName(writer, name);
 			writer.write(' ');
@@ -226,42 +301,30 @@ class ConfigCategory extends ConfigElement {
 		}
 
 		// write value
-		element.write(writer, settings);
+		element.write(writer, settings, type, metadata, instance);
 	}
 
-	static String serializeType(ConfigValue value) {
-		return Character.toString(serializeType(value.type().getOrDefault()));
-	}
-
-	static char serializeType(Type type) {
-		if (TypeUtils.isAssignable(type, boolean.class)) {
-			return 'B';
-		}
-		if (TypeUtils.isAssignable(type, byte.class) || TypeUtils.isAssignable(type, short.class) || TypeUtils.isAssignable(type, int.class) || TypeUtils.isAssignable(type, long.class) || TypeUtils.isAssignable(type, char.class)) {
-			return 'I';
-		}
-		if (TypeUtils.isAssignable(type, float.class) || TypeUtils.isAssignable(type, double.class)) {
-			return 'D';
-		}
-		return 'S';
-	}
-
-	static String serializeType(ConfigList list) {
-		StringBuilder sb = new StringBuilder();
-		Type type = TypeUtil.getComponentOrElementType(list.type().getOrDefault());
-		while (TypeUtil.isArrayOrCollection(type)) {
-			sb.append('L');
+	static void writeType(ConfigWriter writer, Type type) throws IOException {
+		if (TypeUtil.isArrayOrCollection(type)) {
 			type = TypeUtil.getComponentOrElementType(type);
+			while (TypeUtil.isArrayOrCollection(type)) {
+				writer.write('L');
+				type = TypeUtil.getComponentOrElementType(type);
+			}
 		}
-		sb.append(serializeElementType(type));
-		return sb.toString();
-	}
-
-	static char serializeElementType(Type elementType) {
-		if (TypeAdapters.hasAdapter(elementType)) {
-			return serializeType(elementType);
+		if (TypeAdapters.hasAdapter(type)) {
+			if (TypeUtils.isAssignable(type, boolean.class)) {
+				writer.write('B');
+			} else if (TypeUtils.isAssignable(type, byte.class) || TypeUtils.isAssignable(type, short.class) || TypeUtils.isAssignable(type, int.class) || TypeUtils.isAssignable(type, long.class) || TypeUtils.isAssignable(type, char.class)) {
+				writer.write('I');
+			} else if (TypeUtils.isAssignable(type, float.class) || TypeUtils.isAssignable(type, double.class)) {
+				writer.write('D');
+			} else {
+				writer.write('S');
+			}
+		} else {
+			writer.write('C');
 		}
-		return 'C';
 	}
 
 	static void writeName(ConfigWriter writer, String name) throws IOException {
@@ -275,54 +338,12 @@ class ConfigCategory extends ConfigElement {
 	}
 
 	@Override
-	void loadAnnotations(BetterConfig settings, Type type, ConfigElementMetadata metadata, @Nullable Object instance) {
-		super.loadAnnotations(settings, type, metadata, instance);
-
-		if (TypeUtil.isMap(type)) {
-			Type valueType = TypeUtil.getValueType(type);
-
-			if (ConfigUtil.isCategory(valueType)) {
-				this.subcategories.forEach((name, subcategory) -> {
-					subcategory.loadAnnotations(settings, valueType, metadata, TypeUtil.newInstance(valueType));
-				});
-			} else {
-				this.elements.forEach((name, element) -> {
-					if (element.isConfigTypeEqual(valueType)) {
-						element.loadAnnotations(settings, valueType, metadata, TypeUtil.newInstance(valueType));
-					}
-				});
-			}
-		} else {
-			for (Field field : ConfigUtil.getConfigFields(type, instance == null)) {
-				String name = getName(settings, type, field);
-				ConfigElement element;
-				if (ConfigUtil.isCategory(field.getGenericType())) {
-					element = this.subcategories.computeIfAbsent(name, k -> new ConfigCategory(DefaultSupplier.of(field.getGenericType())));
-				} else {
-					element = this.elements.compute(name, (k, v) -> v != null && v.isConfigTypeEqual(field.getGenericType()) ? v : ConfigElement.create(field.getGenericType()));
-				}
-				try {
-					element.loadAnnotations(settings, field.getGenericType(), ConfigElementMetadata.fromField(instance, field), field.get(instance));
-				} catch (IllegalArgumentException | IllegalAccessException e) {
-					throw new UnsupportedOperationException(e);
-				}
-			}
-
-			if (settings.removeDeprecatedEntries()) {
-				this.subcategories.values().removeIf(e -> e.metadata() == null);
-				this.elements.values().removeIf(e -> e.metadata() == null);
-			}
-		}
-	}
-
-	@Override
-	void saveToConfig(BetterConfig settings, Type type, @Nullable Object instance) {
+	void saveToConfig(BetterConfig settings, Type type, @Nullable ConfigElementMetadata metadata, @Nullable Object instance) {
 		Objects.requireNonNull(type);
 		if (!ConfigUtil.isCategory(type)) {
 			throw new IllegalArgumentException();
 		}
 
-		this.type().set(type);
 		if (TypeUtil.isMap(type)) {
 			Objects.requireNonNull(instance);
 
@@ -344,19 +365,19 @@ class ConfigCategory extends ConfigElement {
 				} else {
 					this.elements.put(name, element);
 				}
-				element.saveToConfig(settings, valueType, v);
+				element.saveToConfig(settings, valueType, null, v); // TODO compute metadata for map values?
 			});
 		} else {
 			for (Field field : ConfigUtil.getConfigFields(type, instance == null)) {
 				String name = getName(settings, type, field);
 				ConfigElement element;
 				if (ConfigUtil.isCategory(field.getGenericType())) {
-					element = this.subcategories.computeIfAbsent(name, k -> new ConfigCategory(DefaultSupplier.of(field.getGenericType())));
+					element = this.subcategories.computeIfAbsent(name, k -> new ConfigCategory());
 				} else {
 					element = this.elements.compute(name, (k, v) -> v != null && v.isConfigTypeEqual(field.getGenericType()) ? v : ConfigElement.create(field.getGenericType()));
 				}
 				try {
-					element.saveToConfig(settings, field.getGenericType(), field.get(instance));
+					element.saveToConfig(settings, field.getGenericType(), ConfigElementMetadata.fromField(instance, field), field.get(instance));
 				} catch (IllegalArgumentException | IllegalAccessException e) {
 					throw new UnsupportedOperationException(e);
 				}
@@ -366,9 +387,9 @@ class ConfigCategory extends ConfigElement {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	Object loadFromConfig(BetterConfig settings, Type type, @Nullable Object instance) {
+	Object loadFromConfig(BetterConfig settings, Type type, @Nullable ConfigElementMetadata metadata, @Nullable Object instance) {
 		Objects.requireNonNull(type);
-		if (!ConfigUtil.isCategory(type) || this.type().existsAndNotEqual(type)) {
+		if (!ConfigUtil.isCategory(type)) {
 			return instance;
 		}
 
@@ -383,12 +404,12 @@ class ConfigCategory extends ConfigElement {
 			Map<Object, Object> map = (Map<Object, Object>) TypeUtil.newInstance(type, instance);
 			if (ConfigUtil.isCategory(valueType)) {
 				this.subcategories.forEach((name, subcategory) -> {
-					map.put(keyAdapter.deserialize(name), subcategory.loadFromConfig(settings, valueType, TypeUtil.newInstance(valueType)));
+					map.put(keyAdapter.deserialize(name), subcategory.loadFromConfig(settings, valueType, null, TypeUtil.newInstance(valueType))); // TODO compute metadata for map values?
 				});
 			} else {
 				this.elements.forEach((name, element) -> {
 					if (element.isConfigTypeEqual(valueType)) {
-						map.put(keyAdapter.deserialize(name), element.loadFromConfig(settings, valueType, TypeUtil.newInstance(valueType)));
+						map.put(keyAdapter.deserialize(name), element.loadFromConfig(settings, valueType, null, TypeUtil.newInstance(valueType))); // TODO compute metadata for map values?
 					}
 				});
 			}
@@ -400,7 +421,7 @@ class ConfigCategory extends ConfigElement {
 				ConfigElement element = (ConfigUtil.isCategory(field.getGenericType()) ? this.subcategories : this.elements).get(name);
 				if (element != null && element.isConfigTypeEqual(field.getGenericType())) {
 					try {
-						Object value = element.loadFromConfig(settings, field.getGenericType(), field.get(instance));
+						Object value = element.loadFromConfig(settings, field.getGenericType(), ConfigElementMetadata.fromField(instance, field), field.get(instance));
 						if (!ConfigUtil.isNonMapCategory(field.getGenericType())) {
 							field.set(instance, value);
 						}

@@ -16,16 +16,13 @@ class ConfigList extends ConfigElement {
 
 	private final List<ConfigElement> list = new ArrayList<>();
 
-	ConfigList(DefaultSupplier<Type> type) {
-		super(type);
-		if (!ConfigUtil.isList(this.type().getOrDefault())) {
-			throw new IllegalArgumentException();
-		}
+	void clear() {
+		this.list.clear();
 	}
 
-	void clear() {
-		super.clear();
-		this.list.clear();
+	@Override
+	boolean isConfigTypeEqual(Type type) {
+		return ConfigUtil.isList(type);
 	}
 
 	@Override
@@ -35,18 +32,32 @@ class ConfigList extends ConfigElement {
 		}
 		this.list.clear();
 		while (!reader.readLineIfEqual(">")) {
-			ConfigElement element = ConfigElement.create(this.type().map(TypeUtil::getComponentOrElementType));
+			ConfigElement element;
+			if (reader.peekLine().equals("{")) {
+				element = new ConfigCategory();
+			} else if (reader.peekLine().equals("<")) {
+				element = new ConfigList();
+			} else {
+				element = new ConfigValue();
+			}
 			element.read(reader);
 			this.list.add(element);
 		}
 	}
 
 	@Override
-	void write(ConfigWriter writer, BetterConfig settings) throws IOException {
+	void write(ConfigWriter writer, BetterConfig settings, Type type, @Nullable ConfigElementMetadata metadata, @Nullable Object instance) throws IOException {
+		Objects.requireNonNull(type);
+		Objects.requireNonNull(instance);
+		if (!ConfigUtil.isList(type)) {
+			throw new IllegalArgumentException();
+		}
+
 		writer.writeLine('<');
 		writer.incrementIndentation();
+		Type elementType = TypeUtil.getComponentOrElementType(type);
 		for (ConfigElement child : this.list) {
-			child.write(writer, settings);
+			child.write(writer, settings, elementType, null, TypeUtil.newInstance(elementType)); // TODO compute metadata for list elements?
 			writer.newLine();
 		}
 		writer.decrementIndentation();
@@ -54,17 +65,7 @@ class ConfigList extends ConfigElement {
 	}
 
 	@Override
-	void loadAnnotations(BetterConfig settings, Type type, ConfigElementMetadata metadata, Object instance) {
-		super.loadAnnotations(settings, type, metadata, instance);
-
-		Type elementType = TypeUtil.getComponentOrElementType(type);
-		this.list.forEach(element -> {
-			element.loadAnnotations(settings, elementType, metadata, TypeUtil.newInstance(elementType));
-		});
-	}
-
-	@Override
-	void saveToConfig(BetterConfig settings, Type type, @Nullable Object instance) {
+	void saveToConfig(BetterConfig settings, Type type, @Nullable ConfigElementMetadata metadata, @Nullable Object instance) {
 		Objects.requireNonNull(type);
 		Objects.requireNonNull(instance);
 		if (!ConfigUtil.isList(type)) {
@@ -72,23 +73,21 @@ class ConfigList extends ConfigElement {
 		}
 
 		if (TypeUtil.isArray(type)) {
-			this.type().set(type);
 			this.list.clear();
 			Type componentType = TypeUtil.getComponentType(type);
 
 			for (int i = 0; i < Array.getLength(instance); i++) {
 				ConfigElement element = ConfigElement.create(componentType);
-				element.saveToConfig(settings, componentType, Array.get(instance, i));
+				element.saveToConfig(settings, componentType, null, Array.get(instance, i)); // TODO compute metadata for list elements?
 				this.list.add(element);
 			}
 		} else if (TypeUtil.isCollection(type)) {
-			this.type().set(type);
 			this.list.clear();
 			Type elementType = TypeUtil.getElementType(type);
 
 			for (Object value : (Collection<?>) instance) {
 				ConfigElement element = ConfigElement.create(elementType);
-				element.saveToConfig(settings, elementType, value);
+				element.saveToConfig(settings, elementType, null, value); // TODO compute metadata for list elements?
 				this.list.add(element);
 			}
 		} else {
@@ -98,33 +97,34 @@ class ConfigList extends ConfigElement {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	Object loadFromConfig(BetterConfig settings, Type type, @Nullable Object instance) {
+	Object loadFromConfig(BetterConfig settings, Type type, @Nullable ConfigElementMetadata metadata, @Nullable Object instance) {
 		Objects.requireNonNull(type);
-		if (!ConfigUtil.isList(type) || this.type().existsAndNotEqual(type)) {
-			return instance;
+		Objects.requireNonNull(instance);
+		if (!ConfigUtil.isList(type)) {
+			throw new IllegalArgumentException();
 		}
 
 		if (TypeUtil.isArray(type)) {
 			Type componentType = TypeUtil.getComponentType(type);
-			if (!ConfigUtil.isConfigTypeEqual(componentType, TypeUtil.getComponentOrElementType(this.type().getOrDefault()))) {
-				return instance;
-			}
 
 			Object array = Array.newInstance(TypeUtil.getRawType(componentType), this.list.size());
 			for (int i = 0; i < this.list.size(); i++) {
-				Array.set(array, i, this.list.get(i).loadFromConfig(settings, componentType, TypeUtil.newInstance(componentType)));
+				if (!this.list.get(i).isConfigTypeEqual(componentType)) {
+					continue;
+				}
+				Array.set(array, i, this.list.get(i).loadFromConfig(settings, componentType, null, TypeUtil.newInstance(componentType))); // TODO compute metadata for list elements?
 			}
 
 			return array;
 		} else if (TypeUtil.isCollection(type)) {
 			Type elementType = TypeUtil.getElementType(type);
-			if (!ConfigUtil.isConfigTypeEqual(elementType, TypeUtil.getComponentOrElementType(this.type().getOrDefault()))) {
-				return instance;
-			}
 
 			Collection<Object> collection = (Collection<Object>) TypeUtil.newInstance(type, instance);
 			for (ConfigElement value : this.list) {
-				collection.add(value.loadFromConfig(settings, elementType, TypeUtil.newInstance(elementType)));
+				if (!value.isConfigTypeEqual(elementType)) {
+					continue;
+				}
+				collection.add(value.loadFromConfig(settings, elementType, null, TypeUtil.newInstance(elementType))); // TODO compute metadata for list elements?
 			}
 
 			return collection;
