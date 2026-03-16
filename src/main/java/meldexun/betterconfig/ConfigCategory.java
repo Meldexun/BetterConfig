@@ -224,7 +224,7 @@ class ConfigCategory extends ConfigElement {
 		writer.write(this.elements(settings, type, metadata, instance), (writer1, entry) -> {
 			writeEntry(writer1, settings, entry.name(), entry.configElement(), entry.type(), entry.metadata(), entry.instance(), !TypeUtil.isMap(type));
 			writer1.newLine();
-		});
+		}, !TypeUtil.isMap(type) ? ConfigWriter::newLine : ThrowingConsumer.noop());
 		writer.decrementIndentation();
 		writer.write('}');
 	}
