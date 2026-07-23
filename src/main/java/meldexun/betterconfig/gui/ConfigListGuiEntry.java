@@ -16,7 +16,7 @@ public class ConfigListGuiEntry extends BaseEntry implements IGuiListEntryExt, C
 	@SuppressWarnings("unchecked")
 	public <T extends GuiScreen & ConfigGui> ConfigListGuiEntry(ConfigListGui.Entries owningEntryList, Type type, Optional<Object> value) {
 		super(owningEntryList.owningScreen(), owningEntryList, owningEntryList.configElement);
-		this.entry = AbstractEntry.create((T) this.owningScreen, () -> "[" + owningEntryList.listEntries.indexOf(this) + "]", owningEntryList.owningScreen().info(), type, TypeUtil.newInstance(type), value);
+		this.entry = AbstractEntry.create((T) this.owningScreen, () -> "[" + owningEntryList.listEntries.indexOf(this) + "]", owningEntryList.owningScreen().info(), type, TypeUtil.newInstance(type), value.map(v -> TypeUtil.copy(type, v)));
 		this.isValidated = this.entry instanceof StringEntry && !type.equals(String.class);
 	}
 

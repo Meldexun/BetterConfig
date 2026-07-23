@@ -17,8 +17,8 @@ public class ConfigMapGuiEntry extends BaseEntry implements IGuiListEntryExt, Co
 	@SuppressWarnings("unchecked")
 	public <T extends GuiScreen & ConfigGui> ConfigMapGuiEntry(ConfigMapGui.Entries owningEntryList, Type keyType, Type valueType, Optional<Object> beforeKey, Optional<Object> beforeValue) {
 		super(owningEntryList.owningScreen(), owningEntryList, owningEntryList.configElement);
-		this.key = AbstractEntry.create((T) this.owningScreen, () -> "[" + owningEntryList.listEntries.indexOf(this) + "]", owningEntryList.owningScreen().info(), keyType, TypeUtil.newInstance(keyType), beforeKey);
-		this.value = AbstractEntry.create((T) this.owningScreen, () -> "[" + owningEntryList.listEntries.indexOf(this) + "]", owningEntryList.owningScreen().info(), valueType, TypeUtil.newInstance(valueType), beforeValue);
+		this.key = AbstractEntry.create((T) this.owningScreen, () -> "[" + owningEntryList.listEntries.indexOf(this) + "]", owningEntryList.owningScreen().info(), keyType, TypeUtil.newInstance(keyType), beforeKey.map(k -> TypeUtil.copy(keyType, k)));
+		this.value = AbstractEntry.create((T) this.owningScreen, () -> "[" + owningEntryList.listEntries.indexOf(this) + "]", owningEntryList.owningScreen().info(), valueType, TypeUtil.newInstance(valueType), beforeValue.map(v -> TypeUtil.copy(valueType, v)));
 		this.isValidated = this.key instanceof StringEntry && !keyType.equals(String.class) || this.value instanceof StringEntry && !valueType.equals(String.class);
 	}
 
