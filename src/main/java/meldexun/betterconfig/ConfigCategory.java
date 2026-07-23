@@ -55,15 +55,27 @@ class ConfigCategory extends ConfigElement {
 		private final ConfigElementMetadata metadata;
 		private final Object instance;
 
-		private Entry(String name, ConfigElement configElement, @Nullable Object owner, Field field) {
+		private Entry(String name, ConfigElement configElement, @Nullable Object owner, @Nullable Field field) {
 			this.name = name;
 			this.configElement = configElement;
-			this.type = field.getGenericType();
-			this.metadata = ConfigElementMetadata.fromField(owner, field);
-			try {
-				this.instance = field.get(owner);
-			} catch (ReflectiveOperationException e) {
-				throw new UnsupportedOperationException(e);
+			if (field != null) {
+				this.type = field.getGenericType();
+				this.metadata = ConfigElementMetadata.fromField(owner, field);
+				try {
+					this.instance = field.get(owner);
+				} catch (ReflectiveOperationException e) {
+					throw new UnsupportedOperationException(e);
+				}
+			} else {
+				if (configElement instanceof ConfigCategory) {
+					this.type = TypeUtils.parameterize(Map.class, String.class, Object.class);
+				} else if (configElement instanceof ConfigList) {
+					this.type = TypeUtils.parameterize(Collection.class, Object.class);
+				} else {
+					this.type = String.class;
+				}
+				this.metadata = null;
+				this.instance = null;
 			}
 		}
 
