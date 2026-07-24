@@ -67,13 +67,7 @@ class ConfigCategory extends ConfigElement {
 					throw new UnsupportedOperationException(e);
 				}
 			} else {
-				if (configElement instanceof ConfigCategory) {
-					this.type = TypeUtils.parameterize(Map.class, String.class, Object.class);
-				} else if (configElement instanceof ConfigList) {
-					this.type = TypeUtils.parameterize(Collection.class, Object.class);
-				} else {
-					this.type = String.class;
-				}
+				this.type = null;
 				this.metadata = null;
 				this.instance = null;
 			}
@@ -95,6 +89,7 @@ class ConfigCategory extends ConfigElement {
 			return this.configElement;
 		}
 
+		@Nullable
 		Type type() {
 			return this.type;
 		}
@@ -230,7 +225,24 @@ class ConfigCategory extends ConfigElement {
 	}
 
 	@Override
-	void write(ConfigWriter writer, BetterConfig settings, Type type, @Nullable ConfigElementMetadata metadata, @Nullable Object instance) throws IOException {
+	void write(ConfigWriter writer, BetterConfig settings, @Nullable Type type, @Nullable ConfigElementMetadata metadata, @Nullable Object instance) throws IOException {
+		if (type == null) {
+			// deprecated entry
+			writer.writeLine('{');
+			writer.incrementIndentation();
+			writer.write(Stream.of(this.subcategories, this.elements)
+					.map(Map::entrySet)
+					.flatMap(Collection::stream)
+					.map(e -> new Entry(e.getKey(), e.getValue(), (Type) null, (Object) null))
+					.collect(Collectors.toList()), (writer1, entry) -> {
+						writeEntry(writer1, settings, entry.name(), entry.configElement(), entry.type(), entry.metadata(), entry.instance(), false);
+						writer1.newLine();
+					}, ThrowingConsumer.noop());
+			writer.decrementIndentation();
+			writer.write('}');
+			return;
+		}
+
 		writer.writeLine('{');
 		writer.incrementIndentation();
 		writer.write(this.elements(settings, type, metadata, instance), (writer1, entry) -> {
@@ -241,7 +253,7 @@ class ConfigCategory extends ConfigElement {
 		writer.write('}');
 	}
 
-	static void writeEntry(ConfigWriter writer, BetterConfig settings, String name, ConfigElement element, Type type, @Nullable ConfigElementMetadata metadata, @Nullable Object instance, boolean writeComment) throws IOException {
+	static void writeEntry(ConfigWriter writer, BetterConfig settings, String name, ConfigElement element, @Nullable Type type, @Nullable ConfigElementMetadata metadata, @Nullable Object instance, boolean writeComment) throws IOException {
 		// write comment
 		if (writeComment) {
 			if (metadata != null) {
@@ -296,12 +308,20 @@ class ConfigCategory extends ConfigElement {
 
 		// write type and name
 		if (element instanceof ConfigValue) {
-			writeType(writer, type);
+			if (type == null) {
+				writeType(writer, String.class);
+			} else {
+				writeType(writer, type);
+			}
 			writer.write(':');
 			writeName(writer, name);
 			writer.write('=');
 		} else if (element instanceof ConfigList) {
-			writeType(writer, type);
+			if (type == null) {
+				writeType(writer, String.class);
+			} else {
+				writeType(writer, type);
+			}
 			writer.write(':');
 			writeName(writer, name);
 			writer.write(' ');

@@ -93,17 +93,19 @@ class Config {
 			for (Map.Entry<String, ConfigCategory> entry : this.categories.entrySet()) {
 				String name = entry.getKey();
 				ConfigCategory category = entry.getValue();
-				Type type = ObjectUtils.defaultIfNull(getType.apply(name), Map.class);
-				BetterConfig settings = ObjectUtils.defaultIfNull(AnnotationUtil.get(type, BetterConfig.class), DEFAULT_SETTINGS);
+				Type type = getType.apply(name);
+				BetterConfig settings = type != null ? AnnotationUtil.get(type, BetterConfig.class) : DEFAULT_SETTINGS;
+				ConfigElementMetadata metadata = type != null ? ConfigElementMetadata.create(TypeUtil.getRawType(type)) : null;
 				if (name.isEmpty()) {
-					for (ConfigCategory.Entry entry1 : category.elements(settings, type, ConfigElementMetadata.create(TypeUtil.getRawType(type)), null)) {
-						ConfigCategory.writeEntry(writer, settings, entry1.name(), entry1.configElement(), entry1.type(), entry1.metadata(), entry1.instance(), !TypeUtil.isMap(type));
+					boolean writeComments = type != null && !TypeUtil.isMap(type);
+					for (ConfigCategory.Entry entry1 : category.elements(settings, type, metadata, null)) {
+						ConfigCategory.writeEntry(writer, settings, entry1.name(), entry1.configElement(), entry1.type(), entry1.metadata(), entry1.instance(), writeComments);
 						writer.newLine();
 						writer.newLine();
 						writer.newLine();
 					}
 				} else {
-					ConfigCategory.writeEntry(writer, settings, name, category, type, ConfigElementMetadata.create(TypeUtil.getRawType(type)), null, true);
+					ConfigCategory.writeEntry(writer, settings, name, category, type, metadata, null, true);
 					writer.newLine();
 					writer.newLine();
 					writer.newLine();

@@ -23,7 +23,7 @@ abstract class ConfigElement {
 
 	abstract void read(ConfigReader reader) throws IOException;
 
-	abstract void write(ConfigWriter writer, BetterConfig settings, Type type, @Nullable ConfigElementMetadata metadata, @Nullable Object instance) throws IOException;
+	abstract void write(ConfigWriter writer, BetterConfig settings, @Nullable Type type, @Nullable ConfigElementMetadata metadata, @Nullable Object instance) throws IOException;
 
 	abstract void saveToConfig(BetterConfig settings, Type type, @Nullable ConfigElementMetadata metadata, @Nullable Object instance);
 

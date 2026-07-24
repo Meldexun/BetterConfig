@@ -46,7 +46,20 @@ class ConfigList extends ConfigElement {
 	}
 
 	@Override
-	void write(ConfigWriter writer, BetterConfig settings, Type type, @Nullable ConfigElementMetadata metadata, @Nullable Object instance) throws IOException {
+	void write(ConfigWriter writer, BetterConfig settings, @Nullable Type type, @Nullable ConfigElementMetadata metadata, @Nullable Object instance) throws IOException {
+		if (type == null) {
+			// deprecated entry
+			writer.writeLine('<');
+			writer.incrementIndentation();
+			for (ConfigElement child : this.list) {
+				child.write(writer, settings, null, null, null);
+				writer.newLine();
+			}
+			writer.decrementIndentation();
+			writer.write('>');
+			return;
+		}
+
 		Objects.requireNonNull(type);
 		Objects.requireNonNull(instance);
 		if (!ConfigUtil.isList(type)) {

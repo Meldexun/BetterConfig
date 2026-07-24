@@ -23,7 +23,13 @@ class ConfigValue extends ConfigElement {
 	}
 
 	@Override
-	void write(ConfigWriter writer, BetterConfig settings, Type type, @Nullable ConfigElementMetadata metadata, @Nullable Object instance) throws IOException {
+	void write(ConfigWriter writer, BetterConfig settings, @Nullable Type type, @Nullable ConfigElementMetadata metadata, @Nullable Object instance) throws IOException {
+		if (type == null) {
+			// deprecated entry
+			writer.write(this.value);
+			return;
+		}
+
 		Objects.requireNonNull(type);
 		Objects.requireNonNull(instance);
 		if (!ConfigUtil.isValue(type)) {
