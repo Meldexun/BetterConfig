@@ -1,4 +1,6 @@
 # Better Config
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.meldexun/betterconfig)](https://central.sonatype.com/artifact/io.github.meldexun/betterconfig)
+
 BetterConfig extends Forge's annotation-based config system to support nested arrays, collections, arrays/collections/maps of objects, and much more.
 
 ## Usage
