@@ -36,25 +36,13 @@ configurations {
     implementation.extendsFrom(bundled)
 }
 
-repositories {
-    ivy {
-        url 'https://github.com/'
-
-        patternLayout {
-            artifact '[organisation]/[module]/releases/download/v[revision]/[module]-[revision].[ext]'
-        }
-
-        metadataSources { artifact() } 
-    }
-}
-
 dependencies {
     minecraft "net.minecraftforge:forge:${mc_version}-${forge_version}"
     shadow "org.spongepowered:mixin:${mixin_version}"
     annotationProcessor "org.spongepowered:mixin:${mixin_version}:processor"
     bundled "io.github.llamalad7:mixinextras-common:${mixin_extras_version}"
     annotationProcessor "io.github.llamalad7:mixinextras-common:${mixin_extras_version}"
-    bundled 'meldexun:ASMUtil:2.8.0@jar'
+    bundled 'io.github.meldexun:asmutil:2.8.0'
 }
 
 mixin {
