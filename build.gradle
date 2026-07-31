@@ -9,7 +9,7 @@ plugins {
 
 version = mod_stage != "" ? "${mc_version}-${mod_version}-${mod_stage}" : "${mc_version}-${mod_version}"
 group = mod_group
-archivesBaseName = mod_name
+base.archivesName = mod_name
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(8)
 
