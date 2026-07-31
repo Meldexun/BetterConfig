@@ -133,8 +133,15 @@ mavenPublishing {
             connection = "scm:git:git://github.com/Meldexun/BetterConfig.git"
             developerConnection = "scm:git:ssh://git@github.com/Meldexun/BetterConfig.git"
         }
+        withXml {
+            asNode().get("dependencies").get(0).children().clear()
+        }
     }
 
     publishToMavenCentral()
     signAllPublications()
+}
+
+tasks.withType(GenerateModuleMetadata).configureEach {
+    enabled = false
 }
