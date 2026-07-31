@@ -6,7 +6,7 @@ BetterConfig extends Forge's annotation-based config system to support nested ar
 ## Usage
 BetterConfig is hosted on [Maven Central](https://central.sonatype.com/artifact/io.github.meldexun/betterconfig). To get started, add the following to your dependencies in your build script:
 ```
-implementation fg.deobf('io.github.meldexun:betterconfig:1.12.2-1.0.0')
+implementation fg.deobf('io.github.meldexun:betterconfig:1.12.2-1.0.1')
 ```
 
 To then migrate from Forge to BetterConfig, you only have to
