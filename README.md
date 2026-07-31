@@ -128,3 +128,8 @@ Everything that the Forge annotation config system supports and more. Every new 
     - `NAME_CASE_SENSITIVE` – Orders elements by comparing their name lexicographically, case-sensitively.
     - `NAME_CASE_INSENSITIVE` – Orders elements by comparing their name lexicographically, ignoring case.
     - `INITIALIZATION` – **WARNING, READ CAREFULLY!** Attempts to order elements by their initialization order. The JVM does not provide a guaranteed way to retrieve field initialization order at runtime. BetterConfig analyzes the class bytecode to approximate this order. While this works in most cases, correctness and stability are not guaranteed.
+
+## Mod Features
+*Features for players installing the mod*
+- In-game GUI editing of mods using `net.minecraftforge.common.config.Configuration`. These configs would normally not be editable in-game because they don't use Forge's annotation-based config system.
+  Depending on how these mods use their config, you might have to restart your game to see an effect.
