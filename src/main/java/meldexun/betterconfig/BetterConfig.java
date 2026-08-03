@@ -126,12 +126,15 @@ public class BetterConfig {
 			public IMessage onMessage(SyncConfigPacket message, MessageContext ctx) {
 				FMLCommonHandler.instance().getWorldThread(ctx.netHandler).addScheduledTask(() -> {
 					message.syncedConfigClasses.forEach((k, v) -> {
+						Class<?> slaveConfigClass = null;
 						try {
-							Class<?> slaveConfigClass = ConfigManager.slaveConfigClass(Class.forName(k));
+							slaveConfigClass = ConfigManager.slaveConfigClass(Class.forName(k));
 							read(slaveConfigClass, null, v);
-							MinecraftForge.EVENT_BUS.post(new ConfigSyncedEvent(slaveConfigClass));
 						} catch (Exception e) {
 							LOGGER.error("Failed reading config data from server for class {}", k, e);
+						}
+						if (slaveConfigClass != null) {
+							MinecraftForge.EVENT_BUS.post(new ConfigSyncedEvent(slaveConfigClass));
 						}
 					});
 				});
