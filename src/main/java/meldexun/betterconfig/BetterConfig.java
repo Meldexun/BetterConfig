@@ -57,6 +57,12 @@ public class BetterConfig {
 		MinecraftServer server = Minecraft.getMinecraft().getIntegratedServer();
 		if (server != null) {
 			server.addScheduledTask(() -> {
+				for (Class<?> masterConfigClass : ConfigManager.get(event.getModID())) {
+					Class<?> slaveConfigClass = ConfigManager.slaveConfigClass(masterConfigClass);
+					if (slaveConfigClass == null) continue;
+					copy(masterConfigClass, null, slaveConfigClass, null);
+				}
+
 				NETWORK.sendToAll(new SyncConfigPacket(ConfigManager.syncedConfigs()));
 			});
 		}
@@ -108,7 +114,7 @@ public class BetterConfig {
 				FMLCommonHandler.instance().getWorldThread(ctx.netHandler).addScheduledTask(() -> {
 					message.syncedConfigClasses.forEach((k, v) -> {
 						try {
-							read(Class.forName(k), null, v);
+							read(ConfigManager.slaveConfigClass(Class.forName(k)), null, v);
 						} catch (Exception e) {
 							LOGGER.error("Failed reading config data from server for class {}", k, e);
 						}
@@ -203,6 +209,75 @@ public class BetterConfig {
 				}
 			}
 			return instance;
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private static Object copy(Type srcType, @Nullable Object src, Type dstType, @Nullable Object dst) {
+		if (TypeAdapters.hasAdapter(srcType)) {
+			if (!TypeAdapters.hasAdapter(dstType)) {
+				throw new IllegalArgumentException();
+			}
+			return TypeAdapters.get(dstType).deserialize(TypeAdapters.get(srcType).serialize(src));
+		} else if (TypeUtil.isArray(srcType)) {
+			if (!TypeUtil.isArray(dstType)) {
+				throw new IllegalArgumentException();
+			}
+			Type srcComponentType = TypeUtil.getComponentType(srcType);
+			Type dstComponentType = TypeUtil.getComponentType(dstType);
+			Object array = Array.newInstance(TypeUtil.getRawType(dstComponentType), Array.getLength(src));
+			for (int i = 0; i < Array.getLength(array); i++) {
+				Array.set(array, i, copy(srcComponentType, Array.get(src, i), dstComponentType, TypeUtil.newInstance(dstComponentType)));
+			}
+			return array;
+		} else if (TypeUtil.isCollection(srcType)) {
+			if (!TypeUtil.isCollection(dstType)) {
+				throw new IllegalArgumentException();
+			}
+			Type srcElementType = TypeUtil.getElementType(srcType);
+			Type dstElementType = TypeUtil.getElementType(dstType);
+			Collection<Object> collection = (Collection<Object>) TypeUtil.newInstance(dstType, dst);
+			for (Object element : ((Collection<?>) src)) {
+				collection.add(copy(srcElementType, element, dstElementType, TypeUtil.newInstance(dstElementType)));
+			}
+			return collection;
+		} else if (TypeUtil.isMap(srcType)) {
+			if (!TypeUtil.isMap(dstType)) {
+				throw new IllegalArgumentException();
+			}
+			Type srcKeyType = TypeUtil.getKeyType(srcType);
+			Type srcValueType = TypeUtil.getValueType(srcType);
+			Type dstKeyType = TypeUtil.getKeyType(dstType);
+			Type dstValueType = TypeUtil.getValueType(dstType);
+			Map<Object, Object> map = (Map<Object, Object>) TypeUtil.newInstance(dstType, dst);
+			((Map<?, ?>) src).forEach((k, v) -> {
+				map.put(copy(srcKeyType, k, dstKeyType, TypeUtil.newInstance(dstKeyType)), copy(srcValueType, v, dstValueType, TypeUtil.newInstance(dstValueType)));
+			});
+			return map;
+		} else {
+			if (TypeAdapters.hasAdapter(dstType) || TypeUtil.isArray(dstType) || TypeUtil.isCollection(dstType) || TypeUtil.isMap(dstType)) {
+				throw new IllegalArgumentException();
+			}
+			Field[] srcFields = Arrays.stream(ConfigUtil.getConfigFields(srcType, src == null))
+					.sorted(Comparator.comparing(Field::getName))
+					.toArray(Field[]::new);
+			Field[] dstFields = Arrays.stream(ConfigUtil.getConfigFields(dstType, dst == null))
+					.sorted(Comparator.comparing(Field::getName))
+					.toArray(Field[]::new);
+			if (srcFields.length != dstFields.length) {
+				throw new IllegalArgumentException();
+			}
+			for (int i = 0; i < srcFields.length; i++) {
+				if (!srcFields[i].getName().equals(dstFields[i].getName())) {
+					throw new IllegalArgumentException();
+				}
+				try {
+					copy(srcFields[i].getGenericType(), srcFields[i].get(src), dstFields[i].getGenericType(), dstFields[i].get(dst));
+				} catch (ReflectiveOperationException e) {
+					throw new UnsupportedOperationException(e);
+				}
+			}
+			return dst;
 		}
 	}
 

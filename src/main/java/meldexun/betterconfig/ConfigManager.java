@@ -20,6 +20,8 @@ import org.objectweb.asm.Handle;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.SetMultimap;
@@ -35,7 +37,7 @@ public class ConfigManager {
 	private static final Map<String, SetMultimap<Path, Class<?>>> MODID_2_FILE_2_CONFIG_CLASSES = new HashMap<>();
 	private static final Map<Path, Config> CONFIGS = new HashMap<>();
 	private static final SetMultimap<Path, String> LOADED_CATEGORIES = HashMultimap.create();
-	private static final Map<Class<?>, Class<?>> SYNCED_CONFIGS = new HashMap<>();
+	private static final BiMap<Class<?>, Class<?>> SYNCED_CONFIGS = HashBiMap.create();
 
 	public static void register(Class<?> configClass) {
 		register(configClass, false);
@@ -196,6 +198,14 @@ public class ConfigManager {
 
 	public static synchronized Class<?>[] syncedConfigs() {
 		return SYNCED_CONFIGS.values().toArray(new Class[0]);
+	}
+
+	public static synchronized Class<?> masterConfigClass(Class<?> slaveConfigClass) {
+		return SYNCED_CONFIGS.get(slaveConfigClass);
+	}
+
+	public static synchronized Class<?> slaveConfigClass(Class<?> masterConfigClass) {
+		return SYNCED_CONFIGS.inverse().get(masterConfigClass);
 	}
 
 }
