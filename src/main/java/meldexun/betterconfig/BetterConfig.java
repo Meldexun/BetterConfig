@@ -29,6 +29,7 @@ import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.event.FMLConstructionEvent;
+import net.minecraftforge.fml.common.event.FMLServerAboutToStartEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerLoggedInEvent;
@@ -51,6 +52,16 @@ public class BetterConfig {
 	public void onFMLConstructionEvent(FMLConstructionEvent event) {
 		MinecraftForge.EVENT_BUS.register(this);
 		NETWORK.registerMessage(SyncConfigPacket.Handler.class, SyncConfigPacket.class, 1, Side.CLIENT);
+	}
+
+	@EventHandler
+	public void onFMLServerAboutToStartEvent(FMLServerAboutToStartEvent event) {
+		for (Class<?> masterConfigClass : ConfigManager.syncedConfigs()) {
+			Class<?> slaveConfigClass = ConfigManager.slaveConfigClass(masterConfigClass);
+			if (slaveConfigClass == null) continue;
+			copy(masterConfigClass, null, slaveConfigClass, null);
+			MinecraftForge.EVENT_BUS.post(new ConfigSyncedEvent(slaveConfigClass));
+		}
 	}
 
 	@SubscribeEvent(priority = EventPriority.HIGH)
