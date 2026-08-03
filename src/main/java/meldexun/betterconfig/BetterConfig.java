@@ -63,7 +63,7 @@ public class BetterConfig {
 					copy(masterConfigClass, null, slaveConfigClass, null);
 				}
 
-				NETWORK.sendToAll(new SyncConfigPacket(ConfigManager.syncedConfigs()));
+				NETWORK.sendToAll(new SyncConfigPacket(ConfigManager.syncedConfigs(event.getModID())));
 			});
 		}
 
