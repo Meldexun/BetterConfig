@@ -18,6 +18,7 @@ import org.apache.logging.log4j.Logger;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import meldexun.betterconfig.api.ConfigSyncedEvent;
 import meldexun.betterconfig.gui.configuration.ConfigurationGuiRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -61,6 +62,7 @@ public class BetterConfig {
 					Class<?> slaveConfigClass = ConfigManager.slaveConfigClass(masterConfigClass);
 					if (slaveConfigClass == null) continue;
 					copy(masterConfigClass, null, slaveConfigClass, null);
+					MinecraftForge.EVENT_BUS.post(new ConfigSyncedEvent(slaveConfigClass));
 				}
 
 				NETWORK.sendToAll(new SyncConfigPacket(ConfigManager.syncedConfigs(event.getModID())));
@@ -114,7 +116,9 @@ public class BetterConfig {
 				FMLCommonHandler.instance().getWorldThread(ctx.netHandler).addScheduledTask(() -> {
 					message.syncedConfigClasses.forEach((k, v) -> {
 						try {
-							read(ConfigManager.slaveConfigClass(Class.forName(k)), null, v);
+							Class<?> slaveConfigClass = ConfigManager.slaveConfigClass(Class.forName(k));
+							read(slaveConfigClass, null, v);
+							MinecraftForge.EVENT_BUS.post(new ConfigSyncedEvent(slaveConfigClass));
 						} catch (Exception e) {
 							LOGGER.error("Failed reading config data from server for class {}", k, e);
 						}
