@@ -12,14 +12,14 @@ import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerLoggedInEvent;
  */
 public class ConfigSyncedEvent extends Event {
 
-	private final Class<?> slaveConfigClass;
+	private final Class<?> configClass;
 
-	public ConfigSyncedEvent(Class<?> slaveConfigClass) {
-		this.slaveConfigClass = slaveConfigClass;
+	public ConfigSyncedEvent(Class<?> configClass) {
+		this.configClass = configClass;
 	}
 
-	public Class<?> getSlaveConfigClass() {
-		return slaveConfigClass;
+	public Class<?> getConfigClass() {
+		return configClass;
 	}
 
 }
