@@ -18,6 +18,7 @@ import org.apache.logging.log4j.Logger;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import meldexun.betterconfig.api.ConfigCopiedEvent;
 import meldexun.betterconfig.api.ConfigSyncedEvent;
 import meldexun.betterconfig.api.Sync;
 import meldexun.betterconfig.gui.configuration.ConfigurationGuiRegistry;
@@ -59,6 +60,7 @@ public class BetterConfig {
 	public void onFMLServerAboutToStartEvent(FMLServerAboutToStartEvent event) {
 		ConfigManager.syncedConfigs().forEach((slave, master) -> {
 			copy(master, null, slave, null);
+			MinecraftForge.EVENT_BUS.post(new ConfigCopiedEvent(slave));
 		});
 	}
 
@@ -71,6 +73,7 @@ public class BetterConfig {
 
 				slave2master.forEach((slave, master) -> {
 					copy(master, null, slave, null);
+					MinecraftForge.EVENT_BUS.post(new ConfigCopiedEvent(slave));
 				});
 
 				NETWORK.sendToAll(new SyncConfigPacket(slave2master.keySet()));
