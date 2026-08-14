@@ -60,7 +60,6 @@ public class BetterConfig {
 			Class<?> slaveConfigClass = ConfigManager.slaveConfigClass(masterConfigClass);
 			if (slaveConfigClass == null) continue;
 			copy(masterConfigClass, null, slaveConfigClass, null);
-			MinecraftForge.EVENT_BUS.post(new ConfigSyncedEvent(slaveConfigClass));
 		}
 	}
 
@@ -73,7 +72,6 @@ public class BetterConfig {
 					Class<?> slaveConfigClass = ConfigManager.slaveConfigClass(masterConfigClass);
 					if (slaveConfigClass == null) continue;
 					copy(masterConfigClass, null, slaveConfigClass, null);
-					MinecraftForge.EVENT_BUS.post(new ConfigSyncedEvent(slaveConfigClass));
 				}
 
 				NETWORK.sendToAll(new SyncConfigPacket(ConfigManager.syncedConfigs(event.getModID())));
