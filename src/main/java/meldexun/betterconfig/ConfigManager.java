@@ -196,20 +196,16 @@ public class ConfigManager {
 		return MODID_2_FILE_2_CONFIG_CLASSES.get(modid).values().toArray(new Class[0]);
 	}
 
-	public static synchronized Class<?>[] syncedConfigs() {
-		return SYNCED_CONFIGS.values().toArray(new Class[0]);
+	public static synchronized Map<Class<?>, Class<?>> syncedConfigs() {
+		return new HashMap<>(SYNCED_CONFIGS);
 	}
 
-	public static synchronized Class<?>[] syncedConfigs(String modid) {
-		return MODID_2_FILE_2_CONFIG_CLASSES.get(modid).values().stream().filter(SYNCED_CONFIGS.inverse()::containsKey).toArray(Class[]::new);
-	}
-
-	public static synchronized Class<?> masterConfigClass(Class<?> slaveConfigClass) {
-		return SYNCED_CONFIGS.get(slaveConfigClass);
-	}
-
-	public static synchronized Class<?> slaveConfigClass(Class<?> masterConfigClass) {
-		return SYNCED_CONFIGS.inverse().get(masterConfigClass);
+	public static synchronized Map<Class<?>, Class<?>> syncedConfigs(String modid) {
+		return MODID_2_FILE_2_CONFIG_CLASSES.get(modid)
+				.values()
+				.stream()
+				.filter(SYNCED_CONFIGS::containsValue)
+				.collect(Collectors.toMap(Function.identity(), SYNCED_CONFIGS::get));
 	}
 
 }

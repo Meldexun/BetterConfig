@@ -19,6 +19,7 @@ import org.apache.logging.log4j.Logger;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import meldexun.betterconfig.api.ConfigSyncedEvent;
+import meldexun.betterconfig.api.Sync;
 import meldexun.betterconfig.gui.configuration.ConfigurationGuiRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -56,11 +57,9 @@ public class BetterConfig {
 
 	@EventHandler
 	public void onFMLServerAboutToStartEvent(FMLServerAboutToStartEvent event) {
-		for (Class<?> masterConfigClass : ConfigManager.syncedConfigs()) {
-			Class<?> slaveConfigClass = ConfigManager.slaveConfigClass(masterConfigClass);
-			if (slaveConfigClass == null) continue;
-			copy(masterConfigClass, null, slaveConfigClass, null);
-		}
+		ConfigManager.syncedConfigs().forEach((slave, master) -> {
+			copy(master, null, slave, null);
+		});
 	}
 
 	@SubscribeEvent(priority = EventPriority.HIGH)
@@ -68,13 +67,13 @@ public class BetterConfig {
 		MinecraftServer server = Minecraft.getMinecraft().getIntegratedServer();
 		if (server != null) {
 			server.addScheduledTask(() -> {
-				for (Class<?> masterConfigClass : ConfigManager.get(event.getModID())) {
-					Class<?> slaveConfigClass = ConfigManager.slaveConfigClass(masterConfigClass);
-					if (slaveConfigClass == null) continue;
-					copy(masterConfigClass, null, slaveConfigClass, null);
-				}
+				Map<Class<?>, Class<?>> slave2master = ConfigManager.syncedConfigs(event.getModID());
 
-				NETWORK.sendToAll(new SyncConfigPacket(ConfigManager.syncedConfigs(event.getModID())));
+				slave2master.forEach((slave, master) -> {
+					copy(master, null, slave, null);
+				});
+
+				NETWORK.sendToAll(new SyncConfigPacket(slave2master.keySet()));
 			});
 		}
 
@@ -84,7 +83,7 @@ public class BetterConfig {
 
 	@SubscribeEvent(priority = EventPriority.HIGH)
 	public void onPlayerLoggedInEvent(PlayerLoggedInEvent event) {
-		NETWORK.sendTo(new SyncConfigPacket(ConfigManager.syncedConfigs()), (EntityPlayerMP) event.player);
+		NETWORK.sendTo(new SyncConfigPacket(ConfigManager.syncedConfigs().keySet()), (EntityPlayerMP) event.player);
 	}
 
 	public static class SyncConfigPacket implements IMessage {
@@ -95,7 +94,13 @@ public class BetterConfig {
 
 		}
 
-		public SyncConfigPacket(Class<?>[] configClasses) {
+		public SyncConfigPacket(Class<?>... configClasses) {
+			for (Class<?> configClass : configClasses) {
+				this.syncedConfigClasses.put(configClass.getName(), write(configClass));
+			}
+		}
+
+		public SyncConfigPacket(Collection<Class<?>> configClasses) {
 			for (Class<?> configClass : configClasses) {
 				this.syncedConfigClasses.put(configClass.getName(), write(configClass));
 			}
@@ -126,7 +131,13 @@ public class BetterConfig {
 					message.syncedConfigClasses.forEach((k, v) -> {
 						Class<?> slaveConfigClass = null;
 						try {
-							slaveConfigClass = ConfigManager.slaveConfigClass(Class.forName(k));
+							slaveConfigClass = Class.forName(k);
+							if (!AnnotationUtil.isPresent(slaveConfigClass, meldexun.betterconfig.api.BetterConfig.class)) {
+								throw new IllegalArgumentException();
+							}
+							if (!AnnotationUtil.isPresent(slaveConfigClass, Sync.class)) {
+								throw new IllegalArgumentException();
+							}
 							read(slaveConfigClass, null, v);
 						} catch (Exception e) {
 							LOGGER.error("Failed reading config data from server for class {}", k, e);
