@@ -5,10 +5,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
-import org.lwjgl.util.vector.Vector2f;
-import org.lwjgl.util.vector.Vector3f;
-import org.lwjgl.util.vector.Vector4f;
-
 public class TypeAdapters {
 
 	private static final Map<Type, TypeAdapter<?>> TYPE_ADAPTERS = new ConcurrentHashMap<>();
@@ -23,31 +19,6 @@ public class TypeAdapters {
 		register(Object::toString, Double::valueOf, 0.0D, double.class, Double.class);
 		register(Integer::toString, s -> (char) Integer.parseInt(s), (char) 0, char.class, Character.class);
 		register(Function.identity(), Function.identity(), "", String.class);
-
-		TypeAdapters.registerString(v -> v.x + "," + v.y, s -> {
-			String[] a = s.split(",");
-			if (a.length != 2) throw new IllegalArgumentException();
-			return new Vector2f(
-					Float.parseFloat(a[0].trim()),
-					Float.parseFloat(a[1].trim()));
-		}, "0,0", Vector2f.class);
-		TypeAdapters.registerString(v -> v.x + "," + v.y + "," + v.z, s -> {
-			String[] a = s.split(",");
-			if (a.length != 3) throw new IllegalArgumentException();
-			return new Vector3f(
-					Float.parseFloat(a[0].trim()),
-					Float.parseFloat(a[1].trim()),
-					Float.parseFloat(a[2].trim()));
-		}, "0,0,0", Vector3f.class);
-		TypeAdapters.registerString(v -> v.x + "," + v.y + "," + v.z + "," + v.w, s -> {
-			String[] a = s.split(",");
-			if (a.length != 4) throw new IllegalArgumentException();
-			return new Vector4f(
-					Float.parseFloat(a[0].trim()),
-					Float.parseFloat(a[1].trim()),
-					Float.parseFloat(a[2].trim()),
-					Float.parseFloat(a[3].trim()));
-		}, "0,0,0,0", Vector4f.class);
 	}
 
 	@SafeVarargs
