@@ -4,6 +4,7 @@ import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 public class TypeAdapters {
 
@@ -19,6 +20,7 @@ public class TypeAdapters {
 		register(Object::toString, Double::valueOf, 0.0D, double.class, Double.class);
 		register(Integer::toString, s -> (char) Integer.parseInt(s), (char) 0, char.class, Character.class);
 		register(Function.identity(), Function.identity(), "", String.class);
+		registerString(Pattern::pattern, Pattern::compile, "", Pattern.class);
 	}
 
 	@SafeVarargs
