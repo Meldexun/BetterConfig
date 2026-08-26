@@ -42,7 +42,7 @@ dependencies {
     annotationProcessor "org.spongepowered:mixin:${mixin_version}:processor"
     bundled "io.github.llamalad7:mixinextras-common:${mixin_extras_version}"
     annotationProcessor "io.github.llamalad7:mixinextras-common:${mixin_extras_version}"
-    bundled 'io.github.meldexun:asmutil:2.8.0'
+    bundled 'io.github.meldexun:asmutil:2.8.1'
 }
 
 mixin {
