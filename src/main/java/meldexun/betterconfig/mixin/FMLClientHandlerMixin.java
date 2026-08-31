@@ -5,7 +5,6 @@ import java.util.Set;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.At.Shift;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
@@ -28,7 +27,7 @@ public abstract class FMLClientHandlerMixin implements IModGuiFactory {
 	@Shadow
 	private BiMap<ModContainer, IModGuiFactory> guiFactories;
 
-	@Inject(method = "finishMinecraftLoading", at = @At(value = "INVOKE", target = "isNullOrEmpty", shift = Shift.BY, by = 2))
+	@Inject(method = "finishMinecraftLoading", at = @At(value = "INVOKE", target = "Lnet/minecraftforge/fml/common/ModContainer;getModId()Ljava/lang/String;", ordinal = 0))
 	private void finishMinecraftLoading(CallbackInfo info, @Local ModContainer modContainer) {
 		if (ConfigManager.has(modContainer.getModId())) {
 			this.guiFactories.put(modContainer, new IModGuiFactory() {
