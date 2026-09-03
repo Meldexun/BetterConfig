@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -27,9 +28,13 @@ import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.SetMultimap;
 
 import meldexun.betterconfig.api.BetterConfig;
+import meldexun.betterconfig.api.tree.IConfigCategory;
+import meldexun.betterconfig.api.tree.IConfigContext;
 import meldexun.betterconfig.api.Sync;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraftforge.fml.common.LoaderException;
+import net.minecraftforge.fml.common.versioning.ArtifactVersion;
+import net.minecraftforge.fml.common.versioning.DefaultArtifactVersion;
 
 public class ConfigManager {
 
@@ -148,6 +153,10 @@ public class ConfigManager {
 				String categoryName = configAnnotation.category();
 				ConfigCategory category = config.getOrCreateCategory(categoryName);
 				if (LOADED_CATEGORIES.put(file, categoryName)) {
+					invokeAfterReadCallback(category, config.getVersion(configClass.getName()), configClass);
+					if (!configAnnotation.version().isEmpty()) {
+						config.setVersion(configClass.getName(), new DefaultArtifactVersion(configAnnotation.version()));
+					}
 					category.loadFromConfig(configAnnotation, configClass, ConfigElementMetadata.create(configClass), null);
 				}
 			} catch (Exception e) {
@@ -176,6 +185,10 @@ public class ConfigManager {
 							String categoryName = settings.category();
 							ConfigCategory category = config.getOrCreateCategory(categoryName);
 							if (LOADED_CATEGORIES.put(file, categoryName)) {
+								invokeAfterReadCallback(category, config.getVersion(configClass.getName()), configClass);
+								if (!settings.version().isEmpty()) {
+									config.setVersion(configClass.getName(), new DefaultArtifactVersion(settings.version()));
+								}
 								category.loadFromConfig(settings, configClass, ConfigElementMetadata.create(configClass), null);
 							}
 							category.saveToConfig(settings, configClass, ConfigElementMetadata.create(configClass), null);
@@ -206,6 +219,37 @@ public class ConfigManager {
 				.stream()
 				.filter(SYNCED_CONFIGS::containsValue)
 				.collect(Collectors.toMap(Function.identity(), SYNCED_CONFIGS::get));
+	}
+
+	private static void invokeAfterReadCallback(ConfigCategory category, ArtifactVersion version, Class<?> configClass) {
+		try {
+			for (Method method : configClass.getDeclaredMethods()) {
+				if (!method.isAnnotationPresent(BetterConfig.AfterRead.class)) continue;
+				if (!Modifier.isPublic(method.getModifiers())) {
+					throw new LoaderException("Failed to invoke AfterRead callback for " + configClass.getName() + ", method needs to be public!");
+				}
+				if (!Modifier.isStatic(method.getModifiers())) {
+					throw new LoaderException("Failed to invoke AfterRead callback for " + configClass.getName() + ", method needs to be static!");
+				}
+				if (method.getParameterCount() != 3) {
+					throw new LoaderException("Failed to invoke AfterRead callback for " + configClass.getName() + ", method needs to have three parameters!");
+				}
+				if (!method.getParameterTypes()[0].getName().equals(IConfigCategory.class.getName())) {
+					throw new LoaderException("Failed to invoke AfterRead callback for " + configClass.getName() + ", first parameter needs to be of type IConfigCategory!");
+				}
+				if (!method.getParameterTypes()[1].getName().equals(IConfigContext.class.getName())) {
+					throw new LoaderException("Failed to invoke AfterRead callback for " + configClass.getName() + ", second parameter needs to be of type IConfigContext!");
+				}
+				if (!method.getParameterTypes()[2].getName().equals(ArtifactVersion.class.getName())) {
+					throw new LoaderException("Failed to invoke AfterRead callback for " + configClass.getName() + ", third parameter needs to be of type ArtifactVersion!");
+				}
+
+				method.invoke(null, category, category, version);
+				break;
+			}
+		} catch (Exception e) {
+			throw new LoaderException("Failed to invoke AfterRead callback for " + configClass.getName(), e);
+		}
 	}
 
 }

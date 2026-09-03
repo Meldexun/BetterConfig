@@ -117,6 +117,15 @@ class ConfigReader implements AutoCloseable {
 		this.currentLine = StringUtils.stripStart(this.peekRawLine(), stripChars);
 	}
 
+	boolean hasRawNext() throws IOException {
+		try {
+			this.peekRawLine();
+			return true;
+		} catch (EOFException e) {
+			return false;
+		}
+	}
+
 	boolean hasNext() throws IOException {
 		try {
 			this.peekLine();

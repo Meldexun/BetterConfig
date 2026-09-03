@@ -7,10 +7,19 @@ import java.util.Objects;
 import javax.annotation.Nullable;
 
 import meldexun.betterconfig.api.BetterConfig;
+import meldexun.betterconfig.api.tree.IConfigValue;
 
-class ConfigValue extends ConfigElement {
+class ConfigValue extends ConfigElement implements IConfigValue<ConfigCategory> {
 
 	private String value = "";
+
+	public String getValue() {
+		return this.value;
+	}
+
+	public void setValue(String value) {
+		this.value = value;
+	}
 
 	@Override
 	Type defaultType() {

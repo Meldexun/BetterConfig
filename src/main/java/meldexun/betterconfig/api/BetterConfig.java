@@ -15,6 +15,8 @@ public @interface BetterConfig {
 
 	String category() default "general";
 
+	String version() default "";
+
 	boolean lowerCaseCategories() default true;
 
 	boolean bigCategoryComments() default true;
@@ -54,6 +56,33 @@ public @interface BetterConfig {
 		NAME_CASE_SENSITIVE,
 		NAME_CASE_INSENSITIVE,
 		INITIALIZATION
+	}
+
+	/**
+	 * Callback annotation for config migration and post-read processing.
+	 * <p>
+	 * A method annotated with {@code @AfterRead} will be called after the corresponding {@code .cfg} file is read,
+	 * but before those entries are synced to the class's fields. This can be used to migrate old config files
+	 * to new versions.
+	 * </p>
+	 *
+	 * <p>Example usage:</p>
+	 * <pre>{@code
+	 * @BetterConfig.AfterRead
+	 * public static <T extends IConfigContext<T>> void afterConfigRead(IConfigCategory<T> category, T context, ArtifactVersion readVersion) {
+	 *     // Modify read cfgs here
+	 * }
+	 * }</pre>
+	 *
+	 * <p>
+	 * The {@code readVersion} parameter contains the in-file (old) version for this BetterConfig class.
+	 * The in-code (new) version to compare should be accessible directly through your code.
+	 * </p>
+	 */
+	@Retention(RetentionPolicy.RUNTIME)
+	@Target(ElementType.METHOD)
+	@interface AfterRead {
+
 	}
 
 }
