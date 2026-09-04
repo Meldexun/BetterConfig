@@ -93,8 +93,7 @@ class Config {
 		this.versions.clear();
 		if (Files.exists(file)) {
 			try (ConfigReader reader = new ConfigReader(Files.newBufferedReader(file))) {
-				this.readVersions(reader)
-						.forEach((className, versionString) -> this.versions.put(className, new DefaultArtifactVersion(versionString)));
+				this.readVersions(reader);
 
 				while (reader.hasNext()) {
 					Matcher matcher;
@@ -109,28 +108,26 @@ class Config {
 		}
 	}
 
-	private Map<String, String> readVersions(ConfigReader reader) throws IOException {
-		Map<String, String> versions = new HashMap<>();
+	private void readVersions(ConfigReader reader) throws IOException {
 		while (reader.hasRawNext()) {
 			String line = reader.peekRawLine().trim();
 			if (line.startsWith("#")) {
 				reader.readRawLine();
 			} else if (line.isEmpty()) {
 				reader.readRawLine();
-				if (!versions.isEmpty()) {
+				if (!this.versions.isEmpty()) {
 					break; // Empty line after versions marks end of header section
 				}
 			} else if (line.startsWith("~CONFIG_VERSION")) {
 				Matcher matcher = reader.readRawMatching(CONFIG_VERSION);
 				if (matcher != null) {
-					versions.put(matcher.group(1), matcher.group(2));
+					this.versions.put(matcher.group(1), new DefaultArtifactVersion(matcher.group(2)));
 				}
 				reader.readRawLine();
 			} else {
 				break; // Non-header line, don't consume
 			}
 		}
-		return versions;
 	}
 
 	void save(Path file, Function<String, Type> getType) throws IOException {

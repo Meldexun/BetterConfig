@@ -13,7 +13,7 @@ public class ConfigMigrationHelper {
 
 	@Nullable
 	public static <T extends IConfigContext<T>> IConfigCategory<T> renameCategory(IConfigCategory<T> parent, String oldName, String newName) {
-		if (parent.getSubCategories().containsKey(newName)){
+		if (parent.getSubCategories().containsKey(newName)) {
 			throw new IllegalArgumentException("Failed to rename category, a category with this name already exists: " + newName);
 		}
 
@@ -26,7 +26,7 @@ public class ConfigMigrationHelper {
 
 	@Nullable
 	public static <T extends IConfigContext<T>> IConfigCategory<T> moveCategory(String name, IConfigCategory<T> source, IConfigCategory<T> target) {
-		if (target.getSubCategories().containsKey(name)){
+		if (target.getSubCategories().containsKey(name)) {
 			throw new IllegalArgumentException("Failed to move category, a category with this name already exists in the target: " + name);
 		}
 
@@ -39,7 +39,7 @@ public class ConfigMigrationHelper {
 
 	@Nullable
 	public static <T extends IConfigContext<T>> IConfigElement<T> renameElement(IConfigCategory<T> parent, String oldName, String newName) {
-		if (parent.getElements().containsKey(newName)){
+		if (parent.getElements().containsKey(newName)) {
 			throw new IllegalArgumentException("Failed to rename element, an element with this name already exists: " + newName);
 		}
 
@@ -52,7 +52,7 @@ public class ConfigMigrationHelper {
 
 	@Nullable
 	public static <T extends IConfigContext<T>> IConfigElement<T> moveElement(String name, IConfigCategory<T> source, IConfigCategory<T> target) {
-		if (target.getSubCategories().containsKey(name)){
+		if (target.getSubCategories().containsKey(name)) {
 			throw new IllegalArgumentException("Failed to move element, an element with this name already exists in the target: " + name);
 		}
 

@@ -28,9 +28,9 @@ import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.SetMultimap;
 
 import meldexun.betterconfig.api.BetterConfig;
+import meldexun.betterconfig.api.Sync;
 import meldexun.betterconfig.api.tree.IConfigCategory;
 import meldexun.betterconfig.api.tree.IConfigContext;
-import meldexun.betterconfig.api.Sync;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraftforge.fml.common.LoaderException;
 import net.minecraftforge.fml.common.versioning.ArtifactVersion;
