@@ -6,10 +6,12 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -466,6 +468,16 @@ class ConfigCategory extends ConfigElement {
 						throw new UnsupportedOperationException(e);
 					}
 				}
+			}
+
+			if (settings.removeDeprecatedEntries()) {
+				Set<String> subcategoryNames = new HashSet<>();
+				Set<String> elementNames = new HashSet<>();
+				for (Field field : ConfigUtil.getConfigFields(type, instance == null)) {
+					(ConfigUtil.isCategory(field.getGenericType()) ? subcategoryNames : elementNames).add(getName(settings, type, field));
+				}
+				this.subcategories.keySet().retainAll(subcategoryNames);
+				this.elements.keySet().retainAll(elementNames);
 			}
 
 			return instance;
