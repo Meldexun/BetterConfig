@@ -10,10 +10,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.ObjectUtils;
 
 import meldexun.betterconfig.api.BetterConfig;
+import net.minecraftforge.fml.common.versioning.ArtifactVersion;
+import net.minecraftforge.fml.common.versioning.DefaultArtifactVersion;
 
 class Config {
 
@@ -36,6 +39,11 @@ class Config {
 		@Override
 		public String category() {
 			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public String version() {
+			return "";
 		}
 
 		@Override
@@ -68,12 +76,25 @@ class Config {
 			return null;
 		}
 	};
+	private static final Pattern CONFIG_VERSION = Pattern.compile("~CONFIG_VERSION\\(([^)]+)\\)\\s*:\\s*(.+)");
 	private final Map<String, ConfigCategory> categories = new HashMap<>();
+	private final Map<String, ArtifactVersion> versions = new HashMap<>();
+
+	public ArtifactVersion getVersion(String className) {
+		return this.versions.get(className);
+	}
+
+	public void setVersion(String className, ArtifactVersion version) {
+		this.versions.put(className, version);
+	}
 
 	void load(Path file) throws IOException {
 		this.categories.clear();
+		this.versions.clear();
 		if (Files.exists(file)) {
 			try (ConfigReader reader = new ConfigReader(Files.newBufferedReader(file))) {
+				this.readVersions(reader);
+
 				while (reader.hasNext()) {
 					Matcher matcher;
 					if ((matcher = reader.readMatching(ConfigCategory.CATEGORY)) != null) {
@@ -87,12 +108,42 @@ class Config {
 		}
 	}
 
+	private void readVersions(ConfigReader reader) throws IOException {
+		while (reader.hasRawNext()) {
+			String line = reader.peekRawLine().trim();
+			if (line.startsWith("#")) {
+				reader.readRawLine();
+			} else if (line.isEmpty()) {
+				reader.readRawLine();
+				if (!this.versions.isEmpty()) {
+					break; // Empty line after versions marks end of header section
+				}
+			} else if (line.startsWith("~CONFIG_VERSION")) {
+				Matcher matcher = reader.readRawMatching(CONFIG_VERSION);
+				if (matcher != null) {
+					this.versions.put(matcher.group(1), new DefaultArtifactVersion(matcher.group(2)));
+				}
+				reader.readRawLine();
+			} else {
+				break; // Non-header line, don't consume
+			}
+		}
+	}
+
 	void save(Path file, Function<String, Type> getType) throws IOException {
 		Path temp = file.resolveSibling(".temp");
 		try {
 			try (ConfigWriter writer = new ConfigWriter(Files.newBufferedWriter(temp))) {
 				writer.writeCommentLine("Configuration file");
 				writer.newLine();
+
+				if (!this.versions.isEmpty()) {
+					for (Map.Entry<String, ArtifactVersion> entry : this.versions.entrySet()) {
+						writer.writeLine("~CONFIG_VERSION(" + entry.getKey() + "): " + entry.getValue().getVersionString());
+					}
+					writer.newLine();
+				}
+
 				for (Map.Entry<String, ConfigCategory> entry : this.categories.entrySet()) {
 					String name = entry.getKey();
 					ConfigCategory category = entry.getValue();

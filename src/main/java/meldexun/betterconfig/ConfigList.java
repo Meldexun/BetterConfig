@@ -13,13 +13,21 @@ import javax.annotation.Nullable;
 import org.apache.commons.lang3.reflect.TypeUtils;
 
 import meldexun.betterconfig.api.BetterConfig;
+import meldexun.betterconfig.api.tree.IConfigElement;
+import meldexun.betterconfig.api.tree.IConfigList;
 
-class ConfigList extends ConfigElement {
+class ConfigList extends ConfigElement implements IConfigList<ConfigCategory> {
 
 	private final List<ConfigElement> list = new ArrayList<>();
 
 	void clear() {
 		this.list.clear();
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public List<IConfigElement<ConfigCategory>> getList() {
+		return (List<IConfigElement<ConfigCategory>>) (List<?>) this.list;
 	}
 
 	@Override

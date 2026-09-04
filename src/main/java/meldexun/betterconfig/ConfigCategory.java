@@ -25,9 +25,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.TypeUtils;
 
 import meldexun.betterconfig.api.BetterConfig;
+import meldexun.betterconfig.api.tree.IConfigCategory;
+import meldexun.betterconfig.api.tree.IConfigContext;
+import meldexun.betterconfig.api.tree.IConfigElement;
 import net.minecraftforge.common.config.Config;
 
-class ConfigCategory extends ConfigElement {
+class ConfigCategory extends ConfigElement implements IConfigCategory<ConfigCategory>, IConfigContext<ConfigCategory> {
 
 	static final String UNQUOTED_NAME = "[\\w\\.-]*";
 	static final String QUOTED_NAME = "[^\"]*";
@@ -47,6 +50,33 @@ class ConfigCategory extends ConfigElement {
 	void clear() {
 		this.elements.clear();
 		this.subcategories.clear();
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public Map<String, IConfigCategory<ConfigCategory>> getSubCategories() {
+		return (Map<String, IConfigCategory<ConfigCategory>>) (Map<String, ?>) this.subcategories;
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public Map<String, IConfigElement<ConfigCategory>> getElements() {
+		return (Map<String, IConfigElement<ConfigCategory>>) (Map<String, ?>) this.elements;
+	}
+
+	@Override
+	public ConfigValue createValue() {
+		return new ConfigValue();
+	}
+
+	@Override
+	public ConfigList createList() {
+		return new ConfigList();
+	}
+
+	@Override
+	public ConfigCategory createCategory() {
+		return new ConfigCategory();
 	}
 
 	static class Entry {
