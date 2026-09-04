@@ -5,11 +5,9 @@ import java.util.Set;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.At.Shift;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.google.common.collect.BiMap;
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.sugar.Local;
 
 import meldexun.betterconfig.ConfigManager;
@@ -28,8 +26,10 @@ public abstract class FMLClientHandlerMixin implements IModGuiFactory {
 	@Shadow
 	private BiMap<ModContainer, IModGuiFactory> guiFactories;
 
-	@Inject(method = "finishMinecraftLoading", at = @At(value = "INVOKE", target = "isNullOrEmpty", shift = Shift.BY, by = 2))
-	private void finishMinecraftLoading(CallbackInfo info, @Local ModContainer modContainer) {
+	@ModifyExpressionValue(method = "finishMinecraftLoading", at = @At(value = "INVOKE", target = "Lcom/google/common/base/Strings;isNullOrEmpty(Ljava/lang/String;)Z"))
+	private boolean finishMinecraftLoading(boolean isNullOrEmpty, @Local ModContainer modContainer) {
+		if(!isNullOrEmpty) return isNullOrEmpty;
+
 		if (ConfigManager.has(modContainer.getModId())) {
 			this.guiFactories.put(modContainer, new IModGuiFactory() {
 				@Override
@@ -59,6 +59,7 @@ public abstract class FMLClientHandlerMixin implements IModGuiFactory {
 				this.guiFactories.put(modContainer, new ConfigurationGuiFactory(modContainer.getModId(), modContainer.getName()));
 			}
 		}
+		return isNullOrEmpty;
 	}
 
 }
