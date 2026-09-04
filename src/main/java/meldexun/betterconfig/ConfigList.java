@@ -10,6 +10,8 @@ import java.util.Objects;
 
 import javax.annotation.Nullable;
 
+import org.apache.commons.lang3.reflect.TypeUtils;
+
 import meldexun.betterconfig.api.BetterConfig;
 
 class ConfigList extends ConfigElement {
@@ -18,6 +20,11 @@ class ConfigList extends ConfigElement {
 
 	void clear() {
 		this.list.clear();
+	}
+
+	@Override
+	Type defaultType() {
+		return TypeUtils.parameterize(List.class, TypeUtils.WILDCARD_ALL);
 	}
 
 	@Override

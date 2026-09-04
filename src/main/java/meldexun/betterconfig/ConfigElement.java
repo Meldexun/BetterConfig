@@ -19,6 +19,8 @@ abstract class ConfigElement {
 		return new ConfigCategory();
 	}
 
+	abstract Type defaultType();
+
 	abstract boolean isConfigTypeEqual(Type type);
 
 	abstract void read(ConfigReader reader) throws IOException;

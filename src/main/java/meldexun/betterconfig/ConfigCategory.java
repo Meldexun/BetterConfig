@@ -132,10 +132,15 @@ class ConfigCategory extends ConfigElement {
 			Stream.concat(this.subcategories.entrySet().stream(), this.elements.entrySet().stream())
 					.map(e -> new Entry(e.getKey(), e.getValue(), instance, fields.get(e.getKey())))
 					.forEach(list::add);
-			list.sort(OrderUtil.buildComparator(settings.elementOrder(), type, Entry::name, Entry::type, e -> e.metadata() != null ? e.metadata().order() : 0));
+			list.sort(OrderUtil.buildComparator(settings.elementOrder(), type, Entry::name, e -> ObjectUtils.defaultIfNull(e.type(), e.configElement().defaultType()), e -> e.metadata() != null ? e.metadata().order() : 0));
 		}
 
 		return list;
+	}
+
+	@Override
+	Type defaultType() {
+		return TypeUtils.parameterize(Map.class, String.class, TypeUtils.WILDCARD_ALL);
 	}
 
 	@Override

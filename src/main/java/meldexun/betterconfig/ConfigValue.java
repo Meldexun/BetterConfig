@@ -13,6 +13,11 @@ class ConfigValue extends ConfigElement {
 	private String value = "";
 
 	@Override
+	Type defaultType() {
+		return String.class;
+	}
+
+	@Override
 	boolean isConfigTypeEqual(Type type) {
 		return ConfigUtil.isValue(type);
 	}
