@@ -19,7 +19,7 @@ public class ConfigSyncedEvent extends Event {
 	}
 
 	public Class<?> getConfigClass() {
-		return configClass;
+		return this.configClass;
 	}
 
 }
