@@ -9,19 +9,33 @@ import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
 
+import org.apache.commons.lang3.StringUtils;
+
 class ConfigReader implements AutoCloseable {
 
 	private final BufferedReader reader;
 	private int lineNumber;
 	private String currentLine;
+	private boolean isBlankOrComment;
 
 	ConfigReader(BufferedReader reader) {
 		this.reader = reader;
 	}
 
+	private static boolean isBlankOrComment(String line) {
+		for (int i = 0; i < line.length(); i++) {
+			char c = line.charAt(i);
+			if (!Character.isWhitespace(c)) {
+				return c == '#' || c == '~';
+			}
+		}
+		return true;
+	}
+
 	String peekLine() throws IOException {
-		if (this.currentLine == null) {
+		if (this.currentLine == null || this.isBlankOrComment) {
 			this.currentLine = this.nextLine();
+			this.isBlankOrComment = false;
 		}
 		return this.currentLine;
 	}
@@ -32,16 +46,34 @@ class ConfigReader implements AutoCloseable {
 		return line;
 	}
 
+	String peekRawLine() throws IOException {
+		if (this.currentLine == null) {
+			this.currentLine = this.nextRawLine();
+			this.isBlankOrComment = isBlankOrComment(this.currentLine);
+		}
+		return this.currentLine;
+	}
+
+	String readRawLine() throws IOException {
+		String line = this.peekRawLine();
+		this.currentLine = null;
+		return line;
+	}
+
 	private String nextLine() throws IOException {
 		String line;
 		do {
-			line = this.reader.readLine();
-			if (line == null) {
-				throw new EOFException();
-			}
-			this.lineNumber++;
-			line = line.trim();
-		} while (line.isEmpty() || line.startsWith("#") || line.startsWith("~"));
+			line = this.nextRawLine();
+		} while (isBlankOrComment(line));
+		return StringUtils.stripStart(line, null);
+	}
+
+	private String nextRawLine() throws IOException {
+		String line = this.reader.readLine();
+		if (line == null) {
+			throw new EOFException();
+		}
+		this.lineNumber++;
 		return line;
 	}
 
@@ -60,11 +92,29 @@ class ConfigReader implements AutoCloseable {
 	@Nullable
 	Matcher readMatching(Pattern pattern) throws IOException {
 		Matcher matcher = pattern.matcher(this.peekLine());
-		if (matcher.find()) {
+		if (matcher.lookingAt()) {
 			this.currentLine = this.currentLine.substring(matcher.end());
 			return matcher;
 		}
 		return null;
+	}
+
+	@Nullable
+	Matcher readRawMatching(Pattern pattern) throws IOException {
+		Matcher matcher = pattern.matcher(this.peekRawLine());
+		if (matcher.lookingAt()) {
+			this.currentLine = this.currentLine.substring(matcher.end());
+			return matcher;
+		}
+		return null;
+	}
+
+	void stripStart(@Nullable String stripChars) throws IOException {
+		this.currentLine = StringUtils.stripStart(this.peekLine(), stripChars);
+	}
+
+	void stripStartRaw(@Nullable String stripChars) throws IOException {
+		this.currentLine = StringUtils.stripStart(this.peekRawLine(), stripChars);
 	}
 
 	boolean hasNext() throws IOException {

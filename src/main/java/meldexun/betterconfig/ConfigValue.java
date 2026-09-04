@@ -24,7 +24,7 @@ class ConfigValue extends ConfigElement {
 
 	@Override
 	void read(ConfigReader reader) throws IOException {
-		this.value = reader.readLine();
+		this.value = reader.readRawLine();
 	}
 
 	@Override

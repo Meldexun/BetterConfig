@@ -46,6 +46,7 @@ class ConfigList extends ConfigElement {
 				element = new ConfigList();
 			} else {
 				element = new ConfigValue();
+				reader.stripStartRaw(null);
 			}
 			element.read(reader);
 			this.list.add(element);
