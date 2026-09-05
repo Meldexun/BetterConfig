@@ -6,7 +6,7 @@ BetterConfig extends Forge's annotation-based config system to support nested ar
 ## Usage
 BetterConfig is hosted on [Maven Central](https://central.sonatype.com/artifact/io.github.meldexun/betterconfig). To get started, add the following to your dependencies in your build script:
 ```
-implementation fg.deobf('io.github.meldexun:betterconfig:1.12.2-1.0.1')
+implementation fg.deobf('io.github.meldexun:betterconfig:1.12.2-1.1.1')
 ```
 
 To then migrate from Forge to BetterConfig, you only have to
@@ -52,7 +52,7 @@ Everything that the Forge annotation config system supports and more. Every new 
   public static Map<String, LinkedHashMap<String, String>> map_of_maps = ...;
   ```
   LIMITATIONS: The component type of arrays/element type of collections/value type of maps must be a value type or non-abstract with a public no-argument constructor!
-- **Category inheritence**<br>
+- **Category inheritance**<br>
   Category types may inherit entries from their superclass.
   ```Java
   public static class GenerationSettings {
@@ -91,6 +91,8 @@ Everything that the Forge annotation config system supports and more. Every new 
 - **`@Sync`**<br>
   When a player logs in/a config is changed, all configs annotated with this annotation will automatically be sent to that player/all players.
 - Additional `@BetterConfig` settings
+  - **version**<br>
+    versioning config files allows to automatically migrate old files to new formats
   - **lowerCaseCategories**<br>
     If true, category names will always be lowercase, as it is in Forge.
   - **bigCategoryComments**<br>
@@ -128,6 +130,30 @@ Everything that the Forge annotation config system supports and more. Every new 
     - `NAME_CASE_SENSITIVE` – Orders elements by comparing their name lexicographically, case-sensitively.
     - `NAME_CASE_INSENSITIVE` – Orders elements by comparing their name lexicographically, ignoring case.
     - `INITIALIZATION` – **WARNING, READ CAREFULLY!** Attempts to order elements by their initialization order. The JVM does not provide a guaranteed way to retrieve field initialization order at runtime. BetterConfig analyzes the class bytecode to approximate this order. While this works in most cases, correctness and stability are not guaranteed.
+
+- **Callbacks**<br>
+  BetterConfig allows to add specific methods to your @BetterConfig class which will be called at certain times during the load cycle. These methods just need to have the correct annotation and signature.
+  - **BetterConfig.AfterRead**<br>
+    This callback is called after reading the .cfg file but before the read strings are loaded into the @BetterConfig classes fields. This can be used to migrate files with older versions.
+    ```Java
+    @BetterConfig.AfterRead
+    public static <T extends IConfigContext<T>> void afterConfigRead(IConfigCategory<T> category, T context, ArtifactVersion readVersion) {
+        // Modify read cfgs here
+    }
+    ```
+    The context is used to create new values/lists/categories, while the category holds all the read data. This object will be used to update the class fields.
+  - **LoadEarly.Callback**<br>
+    This callback is a replacement for forges OnConfigChanged system in early loading contexts where the forge event pipeline isn't available yet. 
+    It is called after your @BetterConfig class has been initialized (end of `<clinit>` / `static{...}` block).
+    This is still during coremod loading time, so almost no vanilla, forge or modded classes are available. 
+    This is after AfterRead, so the class fields already hold the read values from the .cfg file.
+    Just like OnConfigChanged it can be used to transform the read primitive fields into other types of objects.
+    ```Java
+    @LoadEarly.Callback
+    public static void afterEarlyLoad() {
+        // Use config fields here
+    }
+    ```
 
 ## Mod Features
 *Features for players installing the mod*
