@@ -192,11 +192,11 @@ public class ConfigManager {
 	}
 
 	public static synchronized boolean has(String modId) {
-		return MODID_2_FILE_2_CONFIG_CLASSES.containsKey(modId);
+		return MODID_2_FILE_2_CONFIG_CLASSES.getOrDefault(modId, ImmutableSetMultimap.of()).isEmpty();
 	}
 
 	public static synchronized Class<?>[] get(String modid) {
-		return MODID_2_FILE_2_CONFIG_CLASSES.get(modid).values().toArray(new Class[0]);
+		return MODID_2_FILE_2_CONFIG_CLASSES.getOrDefault(modid, ImmutableSetMultimap.of()).values().toArray(new Class[0]);
 	}
 
 	public static synchronized Map<Class<?>, Class<?>> syncedConfigs() {
@@ -204,7 +204,7 @@ public class ConfigManager {
 	}
 
 	public static synchronized Map<Class<?>, Class<?>> syncedConfigs(String modid) {
-		return MODID_2_FILE_2_CONFIG_CLASSES.get(modid)
+		return MODID_2_FILE_2_CONFIG_CLASSES.getOrDefault(modid, ImmutableSetMultimap.of())
 				.values()
 				.stream()
 				.filter(SYNCED_CONFIGS::containsValue)
