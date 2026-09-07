@@ -24,7 +24,7 @@ import meldexun.betterconfig.api.Sync;
 import meldexun.betterconfig.gui.configuration.ConfigurationGuiRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.integrated.IntegratedServer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.client.event.ConfigChangedEvent.OnConfigChangedEvent;
 import net.minecraftforge.fml.common.FMLCommonHandler;
@@ -66,7 +66,7 @@ public class BetterConfig {
 
 	@SubscribeEvent(priority = EventPriority.HIGH)
 	public void onConfigChangedEvent(OnConfigChangedEvent event) {
-		MinecraftServer server = Minecraft.getMinecraft().getIntegratedServer();
+		IntegratedServer server = Minecraft.getMinecraft().getIntegratedServer();
 		if (server != null) {
 			server.addScheduledTask(() -> {
 				Map<Class<?>, Class<?>> slave2master = ConfigManager.syncedConfigs(event.getModID());
