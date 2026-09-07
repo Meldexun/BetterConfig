@@ -69,8 +69,8 @@ public @interface BetterConfig {
 	 * <p>Example usage:</p>
 	 * <pre>{@code
 	 * @BetterConfig.AfterRead
-	 * public static <T extends IConfigContext<T>> void afterConfigRead(IConfigCategory<T> category, T context, ArtifactVersion readVersion) {
-	 *     // Modify read cfgs here
+	 * public static <T extends IConfigContext<T>> void afterConfigRead(IConfigCategory<T> config, T context, @Nullable ArtifactVersion version) {
+	 *     // ...
 	 * }
 	 * }</pre>
 	 *
