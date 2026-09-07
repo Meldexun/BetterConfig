@@ -24,7 +24,7 @@ abstract class ConfigElement implements IConfigElement<ConfigCategory> {
 
 	abstract boolean isConfigTypeEqual(Type type);
 
-	abstract void read(ConfigReader reader) throws IOException;
+	abstract void read(ConfigReader reader) throws IOException, ConfigParseException;
 
 	abstract void write(ConfigWriter writer, BetterConfig settings, @Nullable Type type, @Nullable ConfigElementMetadata metadata, @Nullable Object instance) throws IOException;
 

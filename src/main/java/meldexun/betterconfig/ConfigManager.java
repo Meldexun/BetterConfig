@@ -1,8 +1,6 @@
 package meldexun.betterconfig;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.file.Files;
@@ -140,15 +138,11 @@ public class ConfigManager {
 		MODID_2_FILE_2_CONFIG_CLASSES.computeIfAbsent(modid, k -> HashMultimap.create()).put(file, configClass);
 		if (load) {
 			try {
-				Config config = CONFIGS.computeIfAbsent(file, k -> {
-					try {
-						Config v = new Config();
-						v.load(k);
-						return v;
-					} catch (IOException e) {
-						throw new UncheckedIOException(e);
-					}
-				});
+				Config config = CONFIGS.get(file);
+				if (config == null) {
+					CONFIGS.put(file, config = new Config());
+					config.load(file);
+				}
 
 				String categoryName = configAnnotation.category();
 				ConfigCategory category = config.getOrCreateCategory(categoryName);
@@ -170,15 +164,11 @@ public class ConfigManager {
 				.asMap()
 				.forEach((file, configClasses) -> {
 					try {
-						Config config = CONFIGS.computeIfAbsent(file, k -> {
-							try {
-								Config v = new Config();
-								v.load(k);
-								return v;
-							} catch (IOException e) {
-								throw new UncheckedIOException(e);
-							}
-						});
+						Config config = CONFIGS.get(file);
+						if (config == null) {
+							CONFIGS.put(file, config = new Config());
+							config.load(file);
+						}
 
 						for (Class<?> configClass : configClasses) {
 							BetterConfig settings = AnnotationUtil.getOrThrow(configClass, BetterConfig.class);

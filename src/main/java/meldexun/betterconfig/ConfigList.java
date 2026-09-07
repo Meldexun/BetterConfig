@@ -1,5 +1,6 @@
 package meldexun.betterconfig;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Type;
@@ -37,24 +38,43 @@ class ConfigList extends ConfigElement implements IConfigList<ConfigCategory> {
 	}
 
 	@Override
-	void read(ConfigReader reader) throws IOException {
-		if (!reader.readLine().equals("<")) {
-			throw new IllegalArgumentException();
-		}
+	void read(ConfigReader reader) throws IOException, ConfigParseException {
 		this.list.clear();
-		while (!reader.readLineIfEqual(">")) {
+
+		int start = reader.lineNumber();
+		if (!reader.readLineIfMatching(ConfigList::isListStart)) {
+			throw new ConfigSyntaxException("Expected list start at line " + start);
+		}
+
+		while (true) {
+			try {
+				if (reader.readLineIfMatching(ConfigList::isListEnd)) {
+					break;
+				}
+			} catch (EOFException e) {
+				throw new ConfigSyntaxException("Missing list end for list starting at line " + start, e);
+			}
+
 			ConfigElement element;
-			if (reader.peekLine().equals("{")) {
+			if (ConfigCategory.isCategoryStart(reader.peekLine())) {
 				element = new ConfigCategory();
-			} else if (reader.peekLine().equals("<")) {
+			} else if (ConfigList.isListStart(reader.peekLine())) {
 				element = new ConfigList();
 			} else {
 				element = new ConfigValue();
-				reader.stripStartRaw(null);
+				reader.stripStart(null);
 			}
 			element.read(reader);
 			this.list.add(element);
 		}
+	}
+
+	static boolean isListStart(String line) {
+		return ConfigReader.strippedEquals(line, "<");
+	}
+
+	static boolean isListEnd(String line) {
+		return ConfigReader.strippedEquals(line, ">");
 	}
 
 	@Override

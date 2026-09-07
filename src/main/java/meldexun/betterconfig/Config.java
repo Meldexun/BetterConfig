@@ -76,7 +76,7 @@ class Config {
 			return null;
 		}
 	};
-	private static final Pattern CONFIG_VERSION = Pattern.compile("~CONFIG_VERSION\\(([^)]+)\\)\\s*:\\s*(.+)");
+	private static final Pattern CONFIG_VERSION = Pattern.compile("\\s*~CONFIG_VERSION\\(([^)]+)\\)\\s*:\\s*(\\S+)\\s*");
 	private final Map<String, ConfigCategory> categories = new HashMap<>();
 	private final Map<String, ArtifactVersion> versions = new HashMap<>();
 
@@ -88,44 +88,29 @@ class Config {
 		this.versions.put(className, version);
 	}
 
-	void load(Path file) throws IOException {
+	void load(Path file) throws IOException, ConfigParseException {
 		this.categories.clear();
 		this.versions.clear();
-		if (Files.exists(file)) {
-			try (ConfigReader reader = new ConfigReader(Files.newBufferedReader(file))) {
-				this.readVersions(reader);
 
-				while (reader.hasNext()) {
-					Matcher matcher;
-					if ((matcher = reader.readMatching(ConfigCategory.CATEGORY)) != null) {
-						String name = ObjectUtils.defaultIfNull(matcher.group(1), matcher.group(2));
-						this.getOrCreateCategory(name).read(reader);
-					} else {
-						throw new IllegalArgumentException();
-					}
-				}
-			}
+		if (!Files.exists(file)) {
+			return;
 		}
-	}
 
-	private void readVersions(ConfigReader reader) throws IOException {
-		while (reader.hasRawNext()) {
-			String line = reader.peekRawLine().trim();
-			if (line.startsWith("#")) {
-				reader.readRawLine();
-			} else if (line.isEmpty()) {
-				reader.readRawLine();
-				if (!this.versions.isEmpty()) {
-					break; // Empty line after versions marks end of header section
+		try (ConfigReader reader = new ConfigReader(Files.newBufferedReader(file))) {
+			while (reader.hasNext()) {
+				if (reader.readLineIfMatching(ConfigReader::isBlankOrComment)) {
+					continue;
 				}
-			} else if (line.startsWith("~CONFIG_VERSION")) {
-				Matcher matcher = reader.readRawMatching(CONFIG_VERSION);
-				if (matcher != null) {
+
+				Matcher matcher;
+				if ((matcher = reader.readLineMatching(CONFIG_VERSION)) != null) {
 					this.versions.put(matcher.group(1), new DefaultArtifactVersion(matcher.group(2)));
+				} else if ((matcher = reader.readMatching(ConfigCategory.CATEGORY)) != null) {
+					String name = ObjectUtils.defaultIfNull(matcher.group(1), matcher.group(2));
+					this.getOrCreateCategory(name).read(reader);
+				} else {
+					throw new ConfigSyntaxException("Unkown config entry at line " + reader.lineNumber());
 				}
-				reader.readRawLine();
-			} else {
-				break; // Non-header line, don't consume
 			}
 		}
 	}

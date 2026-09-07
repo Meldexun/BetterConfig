@@ -1,5 +1,6 @@
 package meldexun.betterconfig;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
@@ -38,9 +39,9 @@ class ConfigCategory extends ConfigElement implements IConfigCategory<ConfigCate
 	static final String VALUE_TYPE = "([BIDS])";
 	static final String LIST_TYPE = "(L?[BIDSC])";
 	static final Pattern NO_QUOTING_NEEDED = Pattern.compile(UNQUOTED_NAME);
-	static final Pattern CATEGORY = Pattern.compile(String.format("%s\\s*(?=\\{)", NAME));
-	static final Pattern LIST = Pattern.compile(String.format("%s:%s\\s*(?=<)", LIST_TYPE, NAME));
-	static final Pattern VALUE = Pattern.compile(String.format("%s:%s=", VALUE_TYPE, NAME));
+	static final Pattern CATEGORY = Pattern.compile(String.format("\\s*%s\\s*(?=\\{)", NAME));
+	static final Pattern LIST = Pattern.compile(String.format("\\s*%s:%s\\s*(?=<)", LIST_TYPE, NAME));
+	static final Pattern VALUE = Pattern.compile(String.format("\\s*%s:%s=", VALUE_TYPE, NAME));
 	static final int CATEGORY_COMMENT_LENGTH = 106;
 	static final String CATEGORY_COMMENT_BORDER = StringUtils.repeat('#', CATEGORY_COMMENT_LENGTH);
 	static final String CATEGORY_COMMENT_SEPARATOR = '#' + StringUtils.repeat('-', CATEGORY_COMMENT_LENGTH - 2) + '#';
@@ -176,11 +177,28 @@ class ConfigCategory extends ConfigElement implements IConfigCategory<ConfigCate
 	}
 
 	@Override
-	void read(ConfigReader reader) throws IOException {
-		if (!reader.readLine().equals("{")) {
-			throw new IllegalArgumentException();
+	void read(ConfigReader reader) throws IOException, ConfigParseException {
+		this.subcategories.clear();
+		this.elements.clear();
+
+		int start = reader.lineNumber();
+		if (!reader.readLineIfMatching(ConfigCategory::isCategoryStart)) {
+			throw new ConfigSyntaxException("Expected category start at line " + start);
 		}
-		while (!reader.readLineIfEqual("}")) {
+
+		while (true) {
+			try {
+				if (reader.readLineIfMatching(ConfigCategory::isCategoryEnd)) {
+					break;
+				}
+			} catch (EOFException e) {
+				throw new ConfigSyntaxException("Missing category end for category starting at line " + start, e);
+			}
+
+			if (reader.readLineIfMatching(ConfigReader::isBlankOrComment)) {
+				continue;
+			}
+
 			String name;
 			ConfigElement element;
 
@@ -195,7 +213,7 @@ class ConfigCategory extends ConfigElement implements IConfigCategory<ConfigCate
 				name = ObjectUtils.defaultIfNull(matcher.group(1), matcher.group(2));
 				element = new ConfigCategory();
 			} else {
-				throw new IllegalArgumentException(reader.peekLine());
+				throw new ConfigSyntaxException("Unkown category entry at line " + reader.lineNumber());
 			}
 			element.read(reader);
 
@@ -205,6 +223,14 @@ class ConfigCategory extends ConfigElement implements IConfigCategory<ConfigCate
 				this.elements.put(name, element);
 			}
 		}
+	}
+
+	static boolean isCategoryStart(String line) {
+		return ConfigReader.strippedEquals(line, "{");
+	}
+
+	static boolean isCategoryEnd(String line) {
+		return ConfigReader.strippedEquals(line, "}");
 	}
 
 	@Override

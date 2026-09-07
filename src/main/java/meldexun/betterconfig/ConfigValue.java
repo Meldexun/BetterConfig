@@ -33,7 +33,7 @@ class ConfigValue extends ConfigElement implements IConfigValue<ConfigCategory> 
 
 	@Override
 	void read(ConfigReader reader) throws IOException {
-		this.value = reader.readRawLine();
+		this.value = reader.readLine();
 	}
 
 	@Override
