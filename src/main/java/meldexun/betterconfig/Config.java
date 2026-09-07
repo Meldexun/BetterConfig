@@ -15,10 +15,11 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.ObjectUtils;
 
 import meldexun.betterconfig.api.BetterConfig;
+import meldexun.betterconfig.api.tree.IConfigContext;
 import net.minecraftforge.fml.common.versioning.ArtifactVersion;
 import net.minecraftforge.fml.common.versioning.DefaultArtifactVersion;
 
-class Config {
+class Config implements IConfigContext<Config> {
 
 	private static final BetterConfig DEFAULT_SETTINGS = new BetterConfig() {
 		@Override
@@ -164,6 +165,21 @@ class Config {
 
 	ConfigCategory getOrCreateCategory(String categoryName) {
 		return this.categories.computeIfAbsent(categoryName, k -> new ConfigCategory());
+	}
+
+	@Override
+	public ConfigCategory createCategory() {
+		return new ConfigCategory();
+	}
+
+	@Override
+	public ConfigList createList() {
+		return new ConfigList();
+	}
+
+	@Override
+	public ConfigValue createValue() {
+		return new ConfigValue();
 	}
 
 }

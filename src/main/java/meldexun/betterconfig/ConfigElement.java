@@ -8,7 +8,7 @@ import javax.annotation.Nullable;
 import meldexun.betterconfig.api.BetterConfig;
 import meldexun.betterconfig.api.tree.IConfigElement;
 
-abstract class ConfigElement implements IConfigElement<ConfigCategory> {
+abstract class ConfigElement implements IConfigElement<Config> {
 
 	static ConfigElement create(Type type) {
 		if (ConfigUtil.isValue(type)) {

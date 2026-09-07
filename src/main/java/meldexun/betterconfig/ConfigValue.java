@@ -9,7 +9,7 @@ import javax.annotation.Nullable;
 import meldexun.betterconfig.api.BetterConfig;
 import meldexun.betterconfig.api.tree.IConfigValue;
 
-class ConfigValue extends ConfigElement implements IConfigValue<ConfigCategory> {
+class ConfigValue extends ConfigElement implements IConfigValue<Config> {
 
 	private String value = "";
 

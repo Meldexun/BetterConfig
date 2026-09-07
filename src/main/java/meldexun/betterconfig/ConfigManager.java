@@ -147,7 +147,7 @@ public class ConfigManager {
 				String categoryName = configAnnotation.category();
 				ConfigCategory category = config.getOrCreateCategory(categoryName);
 				if (LOADED_CATEGORIES.put(file, categoryName)) {
-					invokeAfterReadCallback(category, config.getVersion(configClass.getName()), configClass);
+					invokeAfterReadCallback(category, config, config.getVersion(configClass.getName()), configClass);
 					if (!configAnnotation.version().isEmpty()) {
 						config.setVersion(configClass.getName(), new DefaultArtifactVersion(configAnnotation.version()));
 					}
@@ -175,7 +175,7 @@ public class ConfigManager {
 							String categoryName = settings.category();
 							ConfigCategory category = config.getOrCreateCategory(categoryName);
 							if (LOADED_CATEGORIES.put(file, categoryName)) {
-								invokeAfterReadCallback(category, config.getVersion(configClass.getName()), configClass);
+								invokeAfterReadCallback(category, config, config.getVersion(configClass.getName()), configClass);
 								if (!settings.version().isEmpty()) {
 									config.setVersion(configClass.getName(), new DefaultArtifactVersion(settings.version()));
 								}
@@ -211,7 +211,7 @@ public class ConfigManager {
 				.collect(Collectors.toMap(Function.identity(), SYNCED_CONFIGS::get));
 	}
 
-	private static void invokeAfterReadCallback(ConfigCategory category, ArtifactVersion version, Class<?> configClass) {
+	private static <T extends IConfigContext<T>> void invokeAfterReadCallback(IConfigCategory<T> category, T context, ArtifactVersion version, Class<?> configClass) {
 		try {
 			for (Method method : configClass.getDeclaredMethods()) {
 				if (!method.isAnnotationPresent(BetterConfig.AfterRead.class)) continue;
@@ -234,7 +234,7 @@ public class ConfigManager {
 					throw new LoaderException("Failed to invoke AfterRead callback for " + configClass.getName() + ", third parameter needs to be of type ArtifactVersion!");
 				}
 
-				method.invoke(null, category, category, version);
+				method.invoke(null, category, context, version);
 				break;
 			}
 		} catch (Exception e) {

@@ -17,14 +17,14 @@ import meldexun.betterconfig.api.BetterConfig;
 import meldexun.betterconfig.api.tree.IConfigElement;
 import meldexun.betterconfig.api.tree.IConfigList;
 
-class ConfigList extends ConfigElement implements IConfigList<ConfigCategory> {
+class ConfigList extends ConfigElement implements IConfigList<Config> {
 
 	private final List<ConfigElement> list = new ArrayList<>();
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public List<IConfigElement<ConfigCategory>> getList() {
-		return (List<IConfigElement<ConfigCategory>>) (List<?>) this.list;
+	public List<IConfigElement<Config>> getList() {
+		return (List<IConfigElement<Config>>) (List<?>) this.list;
 	}
 
 	@Override

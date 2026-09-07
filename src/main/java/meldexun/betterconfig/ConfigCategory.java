@@ -27,11 +27,9 @@ import org.apache.commons.lang3.reflect.TypeUtils;
 
 import meldexun.betterconfig.api.BetterConfig;
 import meldexun.betterconfig.api.tree.IConfigCategory;
-import meldexun.betterconfig.api.tree.IConfigContext;
 import meldexun.betterconfig.api.tree.IConfigElement;
-import net.minecraftforge.common.config.Config;
 
-class ConfigCategory extends ConfigElement implements IConfigCategory<ConfigCategory>, IConfigContext<ConfigCategory> {
+class ConfigCategory extends ConfigElement implements IConfigCategory<Config> {
 
 	static final String UNQUOTED_NAME = "[\\w\\.-]*";
 	static final String QUOTED_NAME = "[^\"]*";
@@ -50,29 +48,14 @@ class ConfigCategory extends ConfigElement implements IConfigCategory<ConfigCate
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public Map<String, IConfigCategory<ConfigCategory>> getSubCategories() {
-		return (Map<String, IConfigCategory<ConfigCategory>>) (Map<String, ?>) this.subcategories;
+	public Map<String, IConfigCategory<Config>> getSubCategories() {
+		return (Map<String, IConfigCategory<Config>>) (Map<String, ?>) this.subcategories;
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public Map<String, IConfigElement<ConfigCategory>> getElements() {
-		return (Map<String, IConfigElement<ConfigCategory>>) (Map<String, ?>) this.elements;
-	}
-
-	@Override
-	public ConfigValue createValue() {
-		return new ConfigValue();
-	}
-
-	@Override
-	public ConfigList createList() {
-		return new ConfigList();
-	}
-
-	@Override
-	public ConfigCategory createCategory() {
-		return new ConfigCategory();
+	public Map<String, IConfigElement<Config>> getElements() {
+		return (Map<String, IConfigElement<Config>>) (Map<String, ?>) this.elements;
 	}
 
 	static class Entry {
@@ -487,7 +470,7 @@ class ConfigCategory extends ConfigElement implements IConfigCategory<ConfigCate
 	}
 
 	private static String getName(BetterConfig settings, Type type, Field field) {
-		String name = AnnotationUtil.map(field, Config.Name.class, Config.Name::value, field.getName());
+		String name = AnnotationUtil.map(field, net.minecraftforge.common.config.Config.Name.class, net.minecraftforge.common.config.Config.Name::value, field.getName());
 		if (ConfigUtil.isNonMapCategory(field.getGenericType()) && settings.lowerCaseCategories()) {
 			name = name.toLowerCase();
 		}
