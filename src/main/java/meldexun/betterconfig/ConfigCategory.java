@@ -47,11 +47,6 @@ class ConfigCategory extends ConfigElement implements IConfigCategory<ConfigCate
 	final Map<String, ConfigCategory> subcategories = new LinkedHashMap<>();
 	final Map<String, ConfigElement> elements = new LinkedHashMap<>();
 
-	void clear() {
-		this.elements.clear();
-		this.subcategories.clear();
-	}
-
 	@Override
 	@SuppressWarnings("unchecked")
 	public Map<String, IConfigCategory<ConfigCategory>> getSubCategories() {
@@ -209,55 +204,6 @@ class ConfigCategory extends ConfigElement implements IConfigCategory<ConfigCate
 			} else {
 				this.elements.put(name, element);
 			}
-		}
-	}
-
-	static Type parseValueType(String id) {
-		if (id.length() != 1) {
-			throw new IllegalArgumentException();
-		}
-		switch (id.charAt(0)) {
-		case 'B':
-			return Boolean.class;
-		case 'I':
-			return Long.class;
-		case 'D':
-			return Double.class;
-		case 'S':
-			return String.class;
-		default:
-			throw new IllegalArgumentException();
-		}
-	}
-
-	static Type parseListType(String s) {
-		if (s.isEmpty()) {
-			throw new IllegalArgumentException();
-		}
-		Type type = TypeUtils.parameterize(Collection.class, parseElementType(s.charAt(s.length() - 1)));
-		for (int i = s.length() - 2; i >= 0; i--) {
-			if (s.charAt(i) != 'L') {
-				throw new IllegalArgumentException();
-			}
-			type = TypeUtils.parameterize(Collection.class, type);
-		}
-		return type;
-	}
-
-	static Type parseElementType(char c) {
-		switch (c) {
-		case 'B':
-			return Boolean.class;
-		case 'I':
-			return Long.class;
-		case 'D':
-			return Double.class;
-		case 'S':
-			return String.class;
-		case 'C':
-			return Map.class;
-		default:
-			throw new IllegalArgumentException();
 		}
 	}
 

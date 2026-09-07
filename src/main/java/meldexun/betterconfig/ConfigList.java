@@ -20,10 +20,6 @@ class ConfigList extends ConfigElement implements IConfigList<ConfigCategory> {
 
 	private final List<ConfigElement> list = new ArrayList<>();
 
-	void clear() {
-		this.list.clear();
-	}
-
 	@Override
 	@SuppressWarnings("unchecked")
 	public List<IConfigElement<ConfigCategory>> getList() {
