@@ -45,7 +45,7 @@ class ConfigReader implements AutoCloseable {
 			}
 			return false;
 		}
-		return true;
+		return found;
 	}
 
 	String peekLine() throws IOException {
