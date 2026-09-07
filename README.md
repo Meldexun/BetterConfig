@@ -142,6 +142,14 @@ Everything that the Forge annotation config system supports and more. Every new 
         // ...
     }
     ```
+  - **`@LoadEarly.Callback`**
+    Normally, `OnConfigChangedEvent` is fired after the config is loaded initially, but when loading a config early, Forge's event bus isn't available yet. Use this callback to process your config immediately after it was loaded.
+    ```Java
+    @LoadEarly.Callback
+    public static void afterEarlyLoad() {
+        // ...
+    }
+    ```
 
 ## Mod Features
 *Features for players installing the mod*
