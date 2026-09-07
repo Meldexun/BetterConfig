@@ -44,8 +44,8 @@ class ConfigCategory extends ConfigElement implements IConfigCategory<ConfigCate
 	static final int CATEGORY_COMMENT_LENGTH = 106;
 	static final String CATEGORY_COMMENT_BORDER = StringUtils.repeat('#', CATEGORY_COMMENT_LENGTH);
 	static final String CATEGORY_COMMENT_SEPARATOR = '#' + StringUtils.repeat('-', CATEGORY_COMMENT_LENGTH - 2) + '#';
-	final Map<String, ConfigCategory> subcategories = new LinkedHashMap<>();
-	final Map<String, ConfigElement> elements = new LinkedHashMap<>();
+	private final Map<String, ConfigCategory> subcategories = new LinkedHashMap<>();
+	private final Map<String, ConfigElement> elements = new LinkedHashMap<>();
 
 	@Override
 	@SuppressWarnings("unchecked")
