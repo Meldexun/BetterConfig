@@ -91,6 +91,8 @@ Everything that the Forge annotation config system supports and more. Every new 
 - **`@Sync`**<br>
   When a player logs in/a config is changed, all configs annotated with this annotation will automatically be sent to that player/all players.
 - Additional `@BetterConfig` settings
+  - **version**<br>
+    If non-empty, the version will be written to the config file as `~CONFIG_VERSION(<CLASS_NAME>): <VERSION>`. The config file's version will be available in the `@BetterConfig.AfterRead` callback, allowing for migration of old configs.
   - **lowerCaseCategories**<br>
     If true, category names will always be lowercase, as they are in Forge.
   - **bigCategoryComments**<br>
@@ -128,6 +130,18 @@ Everything that the Forge annotation config system supports and more. Every new 
     - `NAME_CASE_SENSITIVE` – Orders elements by comparing their name lexicographically, case-sensitively.
     - `NAME_CASE_INSENSITIVE` – Orders elements by comparing their name lexicographically, ignoring case.
     - `INITIALIZATION` – **WARNING, READ CAREFULLY!** Attempts to order elements by their initialization order. The JVM does not provide a guaranteed way to retrieve field initialization order at runtime. BetterConfig analyzes the class bytecode to approximate this order. While this works in most cases, correctness and stability are not guaranteed.
+- **Callbacks**<br>
+  A callback is a public static method in a config class that the config system invokes automatically at a specific point in the config lifecycle. Each callback type is identified by its own annotation and has its own required method signature
+  - **`@BetterConfig.AfterRead`**
+    This callback is called after a config file is read but before the data gets loaded into the fields of the config class. This callback can be used in conjunction with the version property of the `@BetterConfig` annotation to migrate old configs without end-users having to do anything.<br>
+    Use the context to create new categories, lists, and values.<br>
+    Note that the version may be null for reasons other than the config being older than when versioning was introduced, such as corrupted or malformed config files.
+    ```Java
+    @BetterConfig.AfterRead
+    public static <T extends IConfigContext<T>> void afterConfigRead(IConfigCategory<T> config, T context, @Nullable ArtifactVersion version) {
+        // ...
+    }
+    ```
 
 ## Mod Features
 *Features for players installing the mod*
