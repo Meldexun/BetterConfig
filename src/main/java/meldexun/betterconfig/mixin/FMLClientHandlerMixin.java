@@ -30,7 +30,7 @@ public abstract class FMLClientHandlerMixin implements IModGuiFactory {
 	@Shadow
 	private BiMap<ModContainer, IModGuiFactory> guiFactories;
 
-	@Inject(method = "finishMinecraftLoading", at = @At(value = "JUMP", opcode = Opcodes.IFEQ, ordinal = 0, shift = Shift.AFTER), slice = @Slice(from = @At(value = "INVOKE", target = "isNullOrEmpty")))
+	@Inject(method = "finishMinecraftLoading", at = @At(value = "JUMP", opcode = Opcodes.IFEQ, ordinal = 0, shift = Shift.AFTER), slice = @Slice(from = @At(value = "INVOKE", target = "Lcom/google/common/base/Strings;isNullOrEmpty(Ljava/lang/String;)Z")))
 	private void finishMinecraftLoading(CallbackInfo info, @Local ModContainer modContainer) {
 		if (ConfigManager.has(modContainer.getModId())) {
 			this.guiFactories.put(modContainer, new IModGuiFactory() {
