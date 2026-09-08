@@ -2,11 +2,13 @@ package meldexun.betterconfig.mixin;
 
 import java.util.Set;
 
+import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.At.Shift;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Slice;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.google.common.collect.BiMap;
@@ -28,7 +30,7 @@ public abstract class FMLClientHandlerMixin implements IModGuiFactory {
 	@Shadow
 	private BiMap<ModContainer, IModGuiFactory> guiFactories;
 
-	@Inject(method = "finishMinecraftLoading", at = @At(value = "INVOKE", target = "isNullOrEmpty", shift = Shift.BY, by = 2))
+	@Inject(method = "finishMinecraftLoading", at = @At(value = "JUMP", opcode = Opcodes.IFEQ, ordinal = 0, shift = Shift.AFTER), slice = @Slice(from = @At(value = "INVOKE", target = "isNullOrEmpty")))
 	private void finishMinecraftLoading(CallbackInfo info, @Local ModContainer modContainer) {
 		if (ConfigManager.has(modContainer.getModId())) {
 			this.guiFactories.put(modContainer, new IModGuiFactory() {
