@@ -1,7 +1,5 @@
 package meldexun.betterconfig.mixin;
 
-import java.util.Set;
-
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -15,11 +13,9 @@ import com.google.common.collect.BiMap;
 import com.llamalad7.mixinextras.sugar.Local;
 
 import meldexun.betterconfig.ConfigManager;
-import meldexun.betterconfig.gui.ConfigCategoryGui;
+import meldexun.betterconfig.gui.BetterConfigGuiFactory;
 import meldexun.betterconfig.gui.configuration.ConfigurationGuiFactory;
 import meldexun.betterconfig.gui.configuration.ConfigurationGuiRegistry;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiScreen;
 import net.minecraftforge.fml.client.FMLClientHandler;
 import net.minecraftforge.fml.client.IModGuiFactory;
 import net.minecraftforge.fml.common.ModContainer;
@@ -33,27 +29,7 @@ public abstract class FMLClientHandlerMixin implements IModGuiFactory {
 	@Inject(method = "finishMinecraftLoading", at = @At(value = "JUMP", opcode = Opcodes.IFEQ, ordinal = 0, shift = Shift.AFTER), slice = @Slice(from = @At(value = "INVOKE", target = "Lcom/google/common/base/Strings;isNullOrEmpty(Ljava/lang/String;)Z")))
 	private void finishMinecraftLoading(CallbackInfo info, @Local ModContainer modContainer) {
 		if (ConfigManager.has(modContainer.getModId())) {
-			this.guiFactories.put(modContainer, new IModGuiFactory() {
-				@Override
-				public void initialize(Minecraft minecraftInstance) {
-
-				}
-
-				@Override
-				public boolean hasConfigGui() {
-					return true;
-				}
-
-				@Override
-				public GuiScreen createConfigGui(GuiScreen parentScreen) {
-					return new ConfigCategoryGui(parentScreen, modContainer.getName(), modContainer.getModId());
-				}
-
-				@Override
-				public Set<RuntimeOptionCategoryElement> runtimeGuiCategories() {
-					return null;
-				}
-			});
+			this.guiFactories.put(modContainer, new BetterConfigGuiFactory(modContainer.getModId(), modContainer.getName()));
 		} else if (ConfigurationGuiRegistry.hasGuiFor(modContainer.getModId())) {
 			if (this.guiFactories.containsKey(modContainer)) {
 				ConfigurationGuiRegistry.unregister(modContainer.getModId());
