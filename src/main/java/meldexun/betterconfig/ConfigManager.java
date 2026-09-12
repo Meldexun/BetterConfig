@@ -192,7 +192,7 @@ public class ConfigManager {
 	}
 
 	public static synchronized boolean has(String modId) {
-		return MODID_2_FILE_2_CONFIG_CLASSES.getOrDefault(modId, ImmutableSetMultimap.of()).isEmpty();
+		return !MODID_2_FILE_2_CONFIG_CLASSES.getOrDefault(modId, ImmutableSetMultimap.of()).isEmpty();
 	}
 
 	public static synchronized Class<?>[] get(String modid) {
