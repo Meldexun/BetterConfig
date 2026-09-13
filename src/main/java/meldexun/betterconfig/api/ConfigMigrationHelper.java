@@ -20,6 +20,10 @@ public class ConfigMigrationHelper {
 	}
 
 	public static <T extends IConfigContext<T>> IConfigCategory<T> moveCategory(IConfigCategory<T> src, String srcName, IConfigCategory<T> dst, String dstName) {
+		Objects.requireNonNull(src);
+		Objects.requireNonNull(srcName);
+		Objects.requireNonNull(dst);
+		Objects.requireNonNull(dstName);
 		if (!src.getSubCategories().containsKey(srcName)) {
 			throw new IllegalArgumentException("Can't move element because an element with name '" + srcName + "' does not exist in the source category");
 		}
@@ -41,6 +45,10 @@ public class ConfigMigrationHelper {
 	}
 
 	public static <T extends IConfigContext<T>> IConfigElement<T> moveElement(IConfigCategory<T> src, String srcName, IConfigCategory<T> dst, String dstName) {
+		Objects.requireNonNull(src);
+		Objects.requireNonNull(srcName);
+		Objects.requireNonNull(dst);
+		Objects.requireNonNull(dstName);
 		if (!src.getElements().containsKey(srcName)) {
 			throw new IllegalArgumentException("Can't move element because an element with name '" + srcName + "' does not exist in the source category");
 		}
