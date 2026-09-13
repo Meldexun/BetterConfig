@@ -27,6 +27,9 @@ public class ConfigMigrationHelper {
 		if (!src.getSubCategories().containsKey(srcName)) {
 			throw new IllegalArgumentException("Can't move element because an element with name '" + srcName + "' does not exist in the source category");
 		}
+		if (src == dst && srcName.equals(dstName)) {
+			return src.getSubCategories().get(srcName);
+		}
 		if (dst.getSubCategories().containsKey(dstName)) {
 			throw new IllegalArgumentException("Can't move element because an element with name '" + dstName + "' already exists in the destination category");
 		}
@@ -51,6 +54,9 @@ public class ConfigMigrationHelper {
 		Objects.requireNonNull(dstName);
 		if (!src.getElements().containsKey(srcName)) {
 			throw new IllegalArgumentException("Can't move element because an element with name '" + srcName + "' does not exist in the source category");
+		}
+		if (src == dst && srcName.equals(dstName)) {
+			return src.getElements().get(srcName);
 		}
 		if (dst.getElements().containsKey(dstName)) {
 			throw new IllegalArgumentException("Can't move element because an element with name '" + dstName + "' already exists in the destination category");
