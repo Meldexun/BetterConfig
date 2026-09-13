@@ -13,52 +13,46 @@ public class ConfigMigrationHelper {
 
 	@Nullable
 	public static <T extends IConfigContext<T>> IConfigCategory<T> renameCategory(IConfigCategory<T> parent, String oldName, String newName) {
-		if (parent.getSubCategories().containsKey(newName)) {
-			throw new IllegalArgumentException("Failed to rename category, a category with this name already exists: " + newName);
-		}
-
-		IConfigCategory<T> category = parent.getSubCategories().remove(oldName);
-		if (category != null) {
-			parent.getSubCategories().put(newName, category);
-		}
-		return category;
+		return moveCategory(parent, oldName, parent, newName);
 	}
 
 	@Nullable
 	public static <T extends IConfigContext<T>> IConfigCategory<T> moveCategory(String name, IConfigCategory<T> source, IConfigCategory<T> target) {
-		if (target.getSubCategories().containsKey(name)) {
-			throw new IllegalArgumentException("Failed to move category, a category with this name already exists in the target: " + name);
+		return moveCategory(source, name, target, name);
+	}
+
+	@Nullable
+	public static <T extends IConfigContext<T>> IConfigCategory<T> moveCategory(IConfigCategory<T> source, String srcName, IConfigCategory<T> target, String dstName) {
+		if (target.getSubCategories().containsKey(dstName)) {
+			throw new IllegalArgumentException("Failed to move category, a category with this name already exists in the target: " + dstName);
 		}
 
-		IConfigCategory<T> category = source.getSubCategories().remove(name);
+		IConfigCategory<T> category = source.getSubCategories().remove(srcName);
 		if (category != null) {
-			target.getSubCategories().put(name, category);
+			target.getSubCategories().put(dstName, category);
 		}
 		return category;
 	}
 
 	@Nullable
 	public static <T extends IConfigContext<T>> IConfigElement<T> renameElement(IConfigCategory<T> parent, String oldName, String newName) {
-		if (parent.getElements().containsKey(newName)) {
-			throw new IllegalArgumentException("Failed to rename element, an element with this name already exists: " + newName);
-		}
-
-		IConfigElement<T> element = parent.getElements().remove(oldName);
-		if (element != null) {
-			parent.getElements().put(newName, element);
-		}
-		return element;
+		return moveElement(parent, oldName, parent, newName);
 	}
 
 	@Nullable
 	public static <T extends IConfigContext<T>> IConfigElement<T> moveElement(String name, IConfigCategory<T> source, IConfigCategory<T> target) {
-		if (target.getSubCategories().containsKey(name)) {
-			throw new IllegalArgumentException("Failed to move element, an element with this name already exists in the target: " + name);
+		return moveElement(source, name, target, name);
+	}
+
+	@Nullable
+	public static <T extends IConfigContext<T>> IConfigElement<T> moveElement(IConfigCategory<T> source, String srcName, IConfigCategory<T> target, String dstName) {
+		if (target.getElements().containsKey(dstName)) {
+			throw new IllegalArgumentException("Failed to move element, an element with this name already exists in the target: " + dstName);
 		}
 
-		IConfigElement<T> element = source.getElements().remove(name);
+		IConfigElement<T> element = source.getElements().remove(srcName);
 		if (element != null) {
-			target.getElements().put(name, element);
+			target.getElements().put(dstName, element);
 		}
 		return element;
 	}
