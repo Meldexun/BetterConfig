@@ -7,7 +7,7 @@ import meldexun.betterconfig.api.tree.IConfigContext;
 import meldexun.betterconfig.api.tree.IConfigElement;
 
 /**
- * Rename, move or delete categories or elements of a (sub-)category
+ * Utility methods to make config migration easier.
  */
 public class ConfigMigrationHelper {
 
