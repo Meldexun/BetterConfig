@@ -1,7 +1,6 @@
 package meldexun.betterconfig.asm;
 
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
 
@@ -18,8 +17,9 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
 import net.minecraftforge.fml.common.LoaderException;
-import net.minecraftforge.fml.common.discovery.ASMDataTable;
+import net.minecraftforge.fml.common.ModContainer;
 import net.minecraftforge.fml.common.discovery.ASMDataTable.ASMData;
+import net.minecraftforge.fml.common.event.FMLConstructionEvent;
 
 public class BetterConfigClassTransformer extends HashMapClassNodeClassTransformer implements IClassTransformer {
 
@@ -27,16 +27,19 @@ public class BetterConfigClassTransformer extends HashMapClassNodeClassTransform
 	protected void registerTransformers(IClassTransformerRegistry registry) {
 		registry.add("net.minecraftforge.fml.common.Loader", "loadMods", 0, method -> {
 			method.instructions.insert(ASMUtil.first(method).methodInsn("loadData").find(), ASMUtil.listOf(
+					new MethodInsnNode(Opcodes.INVOKESTATIC, BetterConfigClassTransformer.class.getName().replace('.', '/') + "$Hook", "initBetterConfig", "()V", false)));
+		});
+		registry.add("net.minecraftforge.fml.common.FMLModContainer", "constructMod", 0, method -> {
+			method.instructions.insert(ASMUtil.first(method).methodInsn("sync").find(), ASMUtil.listOf(
 					new VarInsnNode(Opcodes.ALOAD, 0),
-					new FieldInsnNode(Opcodes.GETFIELD, "net/minecraftforge/fml/common/Loader", "discoverer", "Lnet/minecraftforge/fml/common/discovery/ModDiscoverer;"),
-					new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "net/minecraftforge/fml/common/discovery/ModDiscoverer", "getASMTable", "()Lnet/minecraftforge/fml/common/discovery/ASMDataTable;", false),
-					new MethodInsnNode(Opcodes.INVOKESTATIC, BetterConfigClassTransformer.class.getName().replace('.', '/') + "$Hook", "loadBetterConfigClasses", "(Lnet/minecraftforge/fml/common/discovery/ASMDataTable;)V", false)));
+					new VarInsnNode(Opcodes.ALOAD, 1),
+					new MethodInsnNode(Opcodes.INVOKESTATIC, BetterConfigClassTransformer.class.getName().replace('.', '/') + "$Hook", "loadBetterConfigClasses", "(Lnet/minecraftforge/fml/common/FMLModContainer;Lnet/minecraftforge/fml/common/event/FMLConstructionEvent;)V", false)));
 		});
 	}
 
 	public static class Hook {
 
-		public static void loadBetterConfigClasses(ASMDataTable asmDataTable) {
+		public static void initBetterConfig() {
 			TypeAdapters.register(ResourceLocation::toString, ResourceLocation::new, new ResourceLocation("unkown"), ResourceLocation.class);
 
 			TypeAdapters.register(v -> v.getX() + "," + v.getY() + "," + v.getZ(), s -> {
@@ -64,15 +67,17 @@ public class BetterConfigClassTransformer extends HashMapClassNodeClassTransform
 						Integer.parseInt(a[2].trim()));
 			}, BlockPos.ORIGIN, BlockPos.class);
 
-			for (ASMData target : asmDataTable.getAll(BetterConfig.class.getName())) {
+			ConfigurationGuiRegistry.enableRegistration();
+		}
+
+		public static void loadBetterConfigClasses(ModContainer modContainer, FMLConstructionEvent event) {
+			for (ASMData target : event.getASMHarvestedData().getAnnotationsFor(modContainer).get(BetterConfig.class.getName())) {
 				try {
 					ConfigManager.register(Class.forName(target.getClassName().replace('/', '.')));
 				} catch (ClassNotFoundException e) {
 					throw new LoaderException(e);
 				}
 			}
-
-			ConfigurationGuiRegistry.enableRegistration();
 		}
 
 	}
