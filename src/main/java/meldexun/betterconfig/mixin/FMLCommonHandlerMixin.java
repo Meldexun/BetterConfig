@@ -3,12 +3,9 @@ package meldexun.betterconfig.mixin;
 import java.util.List;
 
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-import com.google.common.collect.BiMap;
 
 import meldexun.betterconfig.TypeAdapters;
 import meldexun.betterconfig.gui.configuration.ConfigurationGuiRegistry;
@@ -16,16 +13,11 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
-import net.minecraftforge.fml.client.IModGuiFactory;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.IFMLSidedHandler;
-import net.minecraftforge.fml.common.ModContainer;
 
 @Mixin(value = FMLCommonHandler.class, remap = false)
 public abstract class FMLCommonHandlerMixin {
-
-	@Shadow
-	private BiMap<ModContainer, IModGuiFactory> guiFactories;
 
 	@Inject(method = "beginLoading", at = @At("RETURN"))
 	private void beginLoading(IFMLSidedHandler handler, CallbackInfoReturnable<List<String>> info) {
