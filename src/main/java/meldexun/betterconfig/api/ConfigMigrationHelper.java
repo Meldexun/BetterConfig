@@ -17,7 +17,7 @@ public class ConfigMigrationHelper {
 	}
 
 	@Nullable
-	public static <T extends IConfigContext<T>> IConfigCategory<T> moveCategory(String name, IConfigCategory<T> source, IConfigCategory<T> target) {
+	public static <T extends IConfigContext<T>> IConfigCategory<T> moveCategory(IConfigCategory<T> source, String name, IConfigCategory<T> target) {
 		return moveCategory(source, name, target, name);
 	}
 
@@ -40,7 +40,7 @@ public class ConfigMigrationHelper {
 	}
 
 	@Nullable
-	public static <T extends IConfigContext<T>> IConfigElement<T> moveElement(String name, IConfigCategory<T> source, IConfigCategory<T> target) {
+	public static <T extends IConfigContext<T>> IConfigElement<T> moveElement(IConfigCategory<T> source, String name, IConfigCategory<T> target) {
 		return moveElement(source, name, target, name);
 	}
 
