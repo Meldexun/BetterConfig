@@ -21,7 +21,7 @@ import net.minecraftforge.fml.client.IModGuiFactory;
 import net.minecraftforge.fml.common.ModContainer;
 
 @Mixin(value = FMLClientHandler.class, remap = false)
-public abstract class FMLClientHandlerMixin implements IModGuiFactory {
+public abstract class FMLClientHandlerMixin {
 
 	@Shadow
 	private BiMap<ModContainer, IModGuiFactory> guiFactories;
