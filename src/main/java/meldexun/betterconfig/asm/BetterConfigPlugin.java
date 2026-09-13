@@ -16,7 +16,6 @@ import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
 public class BetterConfigPlugin implements IFMLLoadingPlugin {
 
 	public BetterConfigPlugin() {
-		Launch.classLoader.registerTransformer(BetterConfigClassTransformer.class.getName());
 		Launch.classLoader.registerTransformer(LoadEarlyClassTransformer.class.getName());
 		Launch.classLoader.registerTransformer(ConfigurationGuiClassTransformer.class.getName());
 	}
