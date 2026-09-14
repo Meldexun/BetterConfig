@@ -5,26 +5,79 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import net.minecraftforge.common.config.Config.RangeDouble;
+import net.minecraftforge.common.config.Config.RangeInt;
+
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface BetterConfig {
 
+	/**
+	 * The id of the mod that this config belongs to.
+	 */
 	String modid();
 
+	/**
+	 * The name of the config file where this config will be stored in. If empty {@link #modid()} will used instead.
+	 */
 	String name() default "";
 
+	/**
+	 * The name of the category where all the top level settings (static fields) of this config will be stored in. This can be used to use the same config
+	 * file for two different config classes.
+	 */
 	String category() default "general";
 
+	/**
+	 * If non-empty, the version will be written to the config file as {@code ~CONFIG_VERSION(<CLASS_NAME>): <VERSION>}. The config file's version will be
+	 * available in the {@link AfterRead} callback, allowing for migration of old configs.
+	 */
 	String version() default "";
 
+	/**
+	 * If true, category names will always be lowercase, as they are in Forge.
+	 */
 	boolean lowerCaseCategories() default true;
 
+	/**
+	 * If true, category comments will be guarded, as they are in Forge. Otherwise, category comments will be formatted like value comments.<br>
+	 * <br>
+	 * bigCategoryComments = true<br>
+	 * <pre>{@code
+	 * ##########################################################################################################
+	 * # defaults
+	 * #--------------------------------------------------------------------------------------------------------#
+	 * # Default configuration for forge chunk loading control
+	 * ##########################################################################################################
+	 * 
+	 * defaults { ... }
+	 * }</pre>
+	 * <br>
+	 * bigCategoryComments = false<br>
+	 * <pre>{@code
+	 * # Default configuration for forge chunk loading control
+	 * defaults { ... }
+	 * }</pre>
+	 */
 	boolean bigCategoryComments() default true;
 
+	/**
+	 * If true, the range of number-fields, if specified, will be written to the config file.
+	 * 
+	 * @see RangeInt
+	 * @see RangeDouble
+	 * @see RangeLong
+	 */
 	boolean addRangesToComments() default true;
 
+	/**
+	 * If true, the defaults of value-, list-, and map-fields will be written to the config file.
+	 */
 	boolean addDefaultsToComments() default true;
 
+	/**
+	 * If true, entries only present in the config file will be removed. Otherwise, these deprecated entries will be marked with ~Deprecated~.
+	 */
 	boolean removeDeprecatedEntries() default false;
 
 	/**
