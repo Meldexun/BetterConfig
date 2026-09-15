@@ -120,12 +120,12 @@ public @interface BetterConfig {
 	 * </p>
 	 *
 	 * <p>Example usage:</p>
-	 * <pre>{@code
-	 * @BetterConfig.AfterRead
-	 * public static <T extends IConfigContext<T>> void afterConfigRead(IConfigCategory<T> config, T context, @Nullable ArtifactVersion version) {
+	 * <pre><code>
+	 * &#064;BetterConfig.AfterRead
+	 * public static &lt;T extends IConfigContext&lt;T&gt;&gt; void afterConfigRead(IConfigCategory&lt;T&gt; config, T context, &#064;Nullable ArtifactVersion version) {
 	 *     // ...
 	 * }
-	 * }</pre>
+	 * </code></pre>
 	 *
 	 * <p>
 	 * The {@code readVersion} parameter contains the in-file (old) version for this BetterConfig class.

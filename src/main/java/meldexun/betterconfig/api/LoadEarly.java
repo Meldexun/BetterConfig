@@ -21,12 +21,12 @@ public @interface LoadEarly {
 	 * available yet. Use this callback to process your config immediately after it was loaded.
 	 * </p>
 	 * 
-	 * <pre>{@code
-	 * @LoadEarly.Callback
+	 * <pre><code>
+	 * &#064;LoadEarly.Callback
 	 * public static void afterEarlyLoad() {
 	 *     // ...
 	 * }
-	 * }</pre>
+	 * </code></pre>
 	 */
 	@Retention(RetentionPolicy.RUNTIME)
 	@Target(ElementType.METHOD)
