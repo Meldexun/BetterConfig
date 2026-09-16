@@ -292,6 +292,13 @@ class ConfigCategory extends ConfigElement implements IConfigCategory<Config> {
 						}
 						writer.newLine();
 					}
+
+					if (type != null && TypeUtil.isEnum(type)) {
+						writer.writeCommentLine("Valid values:");
+						for (Enum<?> e : TypeUtil.getEnumConstants(type)) {
+							writer.writeCommentLine(e.name());
+						}
+					}
 				}
 			} else {
 				writer.writeCommentLine("~DEPRECATED~");
