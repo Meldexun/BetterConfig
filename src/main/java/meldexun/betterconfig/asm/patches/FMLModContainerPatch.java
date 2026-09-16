@@ -29,11 +29,12 @@ public class FMLModContainerPatch {
 		public static void registerConfigs(FMLModContainer modContainer, FMLConstructionEvent event) {
 			for (ASMData target : event.getASMHarvestedData().getAnnotationsFor(modContainer).get(BetterConfig.class.getName())) {
 				try {
-					ConfigManager.registerAndLoad(Class.forName(target.getClassName().replace('/', '.')));
+					ConfigManager.register(Class.forName(target.getClassName().replace('/', '.')));
 				} catch (ClassNotFoundException e) {
 					throw new LoaderException(e);
 				}
 			}
+			ConfigManager.sync(modContainer.getModId());
 		}
 
 	}
