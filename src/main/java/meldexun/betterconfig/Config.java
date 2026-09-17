@@ -81,12 +81,12 @@ class Config implements IConfigContext<Config> {
 	private final Map<String, ConfigCategory> categories = new HashMap<>();
 	private final Map<String, ArtifactVersion> versions = new HashMap<>();
 
-	public ArtifactVersion getVersion(String className) {
-		return this.versions.get(className);
+	public ArtifactVersion getVersion(String categoryName) {
+		return this.versions.get(categoryName);
 	}
 
-	public void setVersion(String className, ArtifactVersion version) {
-		this.versions.put(className, version);
+	public void setVersion(String categoryName, ArtifactVersion version) {
+		this.versions.put(categoryName, version);
 	}
 
 	void load(Path file) throws IOException, ConfigParseException {

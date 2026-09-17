@@ -29,7 +29,7 @@ public @interface BetterConfig {
 	String category() default "general";
 
 	/**
-	 * If non-empty, the version will be written to the config file as {@code ~CONFIG_VERSION(<CLASS_NAME>): <VERSION>}. The config file's version will be
+	 * If non-empty, the version will be written to the config file as {@code ~CONFIG_VERSION(<CATEGORY_NAME>): <VERSION>}. The config file's version will be
 	 * available in the {@link AfterRead} callback, allowing for migration of old configs.
 	 */
 	String version() default "";
