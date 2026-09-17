@@ -147,9 +147,9 @@ public class ConfigManager {
 				String categoryName = configAnnotation.category();
 				ConfigCategory category = config.getOrCreateCategory(categoryName);
 				if (LOADED_CATEGORIES.put(file, categoryName)) {
-					invokeAfterReadCallback(category, config, config.getVersion(configClass.getName()), configClass);
+					invokeAfterReadCallback(category, config, config.getVersion(categoryName), configClass);
 					if (!configAnnotation.version().isEmpty()) {
-						config.setVersion(configClass.getName(), new DefaultArtifactVersion(configAnnotation.version()));
+						config.setVersion(categoryName, new DefaultArtifactVersion(configAnnotation.version()));
 					}
 					category.loadFromConfig(configAnnotation, configClass, ConfigElementMetadata.create(configClass), null);
 				}
@@ -175,9 +175,9 @@ public class ConfigManager {
 							String categoryName = settings.category();
 							ConfigCategory category = config.getOrCreateCategory(categoryName);
 							if (LOADED_CATEGORIES.put(file, categoryName)) {
-								invokeAfterReadCallback(category, config, config.getVersion(configClass.getName()), configClass);
+								invokeAfterReadCallback(category, config, config.getVersion(categoryName), configClass);
 								if (!settings.version().isEmpty()) {
-									config.setVersion(configClass.getName(), new DefaultArtifactVersion(settings.version()));
+									config.setVersion(categoryName, new DefaultArtifactVersion(settings.version()));
 								}
 								category.loadFromConfig(settings, configClass, ConfigElementMetadata.create(configClass), null);
 							}

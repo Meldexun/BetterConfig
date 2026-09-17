@@ -92,7 +92,7 @@ Everything that the Forge annotation config system supports and more. Every new 
   When a player logs in/a config is changed, all configs annotated with this annotation will automatically be sent to that player/all players.
 - Additional `@BetterConfig` settings
   - **version**<br>
-    If non-empty, the version will be written to the config file as `~CONFIG_VERSION(<CLASS_NAME>): <VERSION>`. The config file's version will be available in the `@BetterConfig.AfterRead` callback, allowing for migration of old configs.
+    If non-empty, the version will be written to the config file as `~CONFIG_VERSION(<CATEGORY_NAME>): <VERSION>`. The config file's version will be available in the `@BetterConfig.AfterRead` callback, allowing for migration of old configs.
   - **lowerCaseCategories**<br>
     If true, category names will always be lowercase, as they are in Forge.
   - **bigCategoryComments**<br>
