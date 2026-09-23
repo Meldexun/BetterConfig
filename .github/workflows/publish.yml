@@ -45,8 +45,6 @@ jobs:
           build/libs/!(*-@(sources|javadoc|thin)).jar
           build/libs/*-@(sources).jar
           build/libs/*-@(javadoc).jar
-        dependencies: |
-          mixinbootstrap(required)
 
         github-token: ${{ secrets.GITHUB_TOKEN }}
 
