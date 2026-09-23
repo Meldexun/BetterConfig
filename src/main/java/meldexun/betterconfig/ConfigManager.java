@@ -12,6 +12,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.artifact.versioning.ArtifactVersion;
+import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -31,8 +33,6 @@ import meldexun.betterconfig.api.tree.IConfigCategory;
 import meldexun.betterconfig.api.tree.IConfigContext;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraftforge.fml.common.LoaderException;
-import net.minecraftforge.fml.common.versioning.ArtifactVersion;
-import net.minecraftforge.fml.common.versioning.DefaultArtifactVersion;
 
 public class ConfigManager {
 

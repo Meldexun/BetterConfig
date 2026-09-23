@@ -13,11 +13,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.maven.artifact.versioning.ArtifactVersion;
+import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 
 import meldexun.betterconfig.api.BetterConfig;
 import meldexun.betterconfig.api.tree.IConfigContext;
-import net.minecraftforge.fml.common.versioning.ArtifactVersion;
-import net.minecraftforge.fml.common.versioning.DefaultArtifactVersion;
 
 class Config implements IConfigContext<Config> {
 
@@ -125,7 +125,7 @@ class Config implements IConfigContext<Config> {
 
 				if (!this.versions.isEmpty()) {
 					for (Map.Entry<String, ArtifactVersion> entry : this.versions.entrySet()) {
-						writer.writeLine("~CONFIG_VERSION(" + entry.getKey() + "): " + entry.getValue().getVersionString());
+						writer.writeLine("~CONFIG_VERSION(" + entry.getKey() + "): " + entry.getValue().toString());
 					}
 					writer.newLine();
 				}
